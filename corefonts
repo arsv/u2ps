@@ -1,0 +1,36 @@
+# List of fonts (PostScript Core Fonts) assumed to be present
+# in any postscript interpreter.
+# Unless told otherwise, psfrem will not embed these fonts.
+
+AvantGarde-Book
+AvantGarde-BookOblique
+AvantGarde-Demi
+AvantGarde-DemiOblique
+Bookman-Demi
+Bookman-DemiItalic
+Bookman-Light
+Bookman-LightItalic
+Courier-Bold
+Courier-BoldOblique
+Courier
+Courier-Oblique
+Helvetica-Bold
+Helvetica-BoldOblique
+Helvetica-NarrowBold
+Helvetica-NarrowBoldOblique
+Helvetica
+NewCenturySchlbk-Bold
+NewCenturySchlbk-BoldItalic
+NewCenturySchlbk-Italic
+NewCenturySchlbk-Roman
+Palatino-Bold
+Palatino-BoldItalic
+Palatino-Italic
+Palatino-Roman
+Symbol
+Times-Bold
+Times-BoldItalic
+Times-Italic
+Times-Roman
+ZapfChancery-MediumItalic
+ZapfDingbats

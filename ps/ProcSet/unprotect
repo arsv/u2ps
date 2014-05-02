@@ -1,0 +1,34 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Disable Type1 font protection. Taken directly from
+% font2c.ps distributed with ghostscript.
+
+/unprotect 1 dict begin
+
+/unprotect {
+	.currentglobal
+	false .setglobal	% so protected can reference local objs
+	/protected		% do first so // will work
+		systemdict wcheck { 1500 dict } { 1 dict } ifelse
+	def
+
+	systemdict wcheck not {
+		(Warning: you will not be able to convert protected fonts.\n) print
+		(If you need to convert a protected font, please\n) print
+		(restart the program and specify the -dWRITESYSTEMDICT switch.\n) print
+	} {
+		userdict begin
+			/executeonly {  } bind def
+			/noaccess {  } bind def
+		end
+		true .setglobal
+		systemdict begin
+			/executeonly { userdict /executeonly get exec } bind odef
+			/noaccess { userdict /noaccess get exec } bind odef
+		end
+	} ifelse
+	%end
+	.setglobal
+} def
+
+currentdict end /ProcSet defineresource pop

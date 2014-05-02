@@ -1,0 +1,70 @@
+Version issues: 0.8 vs 0.9.
+
+
+Where are my fonts?
+~~~~~~~~~~~~~~~~~~~~~~
+Starting with version 0.9, u2ps uses system fonts.
+That is, fonts gs can find in its path.
+
+There is no need to supply any general-use fonts with u2ps anymore,
+especially given FreeMono is quite common and is very likely to
+be present somewhere in the system.
+
+One exception here are TT fonts lacking "post" table (e.g. Kochi-Mincho).
+These should be converted to .pfa, placed in u2ps/ps/fonts and listed
+in u2ps/ps/Fontmap.
+
+Also, unlike v0.8, there is nothing specific about u2ps/ps/fonts anymore,
+it's just that gs will be called with -Iu2ps/ps option to allow it to find
+fonts there.
+
+Since most common TT fonts have post table and fonts without post table
+tend to cover unusual ranges, the whole thing was removed from u2ps bundle.
+In case you need those ranges, procure the fonts yourself and convert them
+using supplied ttf2pt42.px.
+
+Supplying fonts with u2ps like it was done in 0.8 simplified full-font
+embedding, because supplied fonts were guaranteed to be "clean" pfa text
+files. In 0.9, full-font embedding is done the same way as reduced-font
+embedding, by dumping loaded font from within gs, and notdef.pfa
+is handled as a special case.
+
+
+Where are my fontsets?
+~~~~~~~~~~~~~~~~~~~~~~
+All available fontsets are now bundled with u2ps (in ps/FontSet directory).
+No additional packages are needed.
+
+
+Font-embedding utilites from v0.8x
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+u2ps_pp.px and u2ps_rs.px have been replaced with simplier one-pass psfrem.px.
+This makes it just a bit harder to debug but significantly faster and easier
+to use, including on non-u2ps files.
+
+
+Regarding output file size: v0.8 vs v0.9
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+It may look like v0.9 generates significantly larger output files that v0.8
+with FreeMono fontset and font embedding enabled.
+
+This is actually mostly because of the changes in FreeMono font itself.
+v0.8 had an old version bundled with it, and "old" here means something like 2007.
+v0.9 loads system font, which for most systems means current version.
+
+
+u2ps options
+~~~~~~~~~~~~
+Options have been adjusted a bit to match a2ps wherever it made sense.
+
+
+Whole-font embedding
+~~~~~~~~~~~~~~~~~~~~
+Unlike v0.8 where it was a safe fallback skipping the whole font-handling part,
+embedding whole fonts now requires about as much work as reducing them.
+And that part is not implemented yet.
+
+The reason to keep this option at all is embedding u2ps output in some other
+PS document which uses the same fonts. Pretty rare case by itself, and with
+current version there's at least one workaround: embed no-fonts output, then
+run psfrem on the whole resulting document.

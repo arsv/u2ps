@@ -1,0 +1,125 @@
+#!/bin/sh
+
+unset prefix bindir datadir mandir man1dir basedir perl gs
+
+help() {
+cat << EOF
+Usage: $0 [OPTIONS]...
+
+Options:
+	--help			display this message and exit
+	--prefix=/path		installation prefix
+	--datadir=/path		base directory for PostScript files [\$prefix/share]
+	--basedir=/path		base directory for PostScript files [\$datadir/u2ps]
+	--mandir=/path		base directory for manual pages [\$datadir/man]
+	--man1dir=/path		directory for manual section 1 pages [\$mandir/man1]
+	--with-perl=		perl path for #! in scripts [/usr/bin/perl]
+	--with-gs=...		gs command to use [gs]
+
+EOF
+exit
+}
+
+log="config.log"
+
+checking() { echo -n "Checking $@... "; echo "Checking $@" >> $log; }
+run() { echo "$@" >> $log; "$@" >> $log 2>&1; }
+
+result() {
+	if [ $? == 0 ]; then
+		echo "$1"
+		echo "Result: $1" >> $log
+		echo >> $log
+	else
+		echo "Failed: $ret" >> $log
+		echo "$2"
+		if [ "x$3" != "x" ]; then echo "WARNING: $3"; fi
+	fi
+	echo >> $log
+}
+
+for arg; do
+	arg="$1"; shift;
+	# Separate LHS and RHS in --option=value case
+	case "$arg" in
+		*=*)
+			val=`echo "$arg" | sed -e 's/^[^=]*=//'`
+			arg=`echo "$arg" | sed -e 's/=.*//'`
+			;;
+		*)
+			val=""
+			;;
+	esac
+	case "$arg" in
+		--help) help ;;
+		--prefix) prefix=$val ;;
+		--datadir) datadir=$val ;;
+		--basedir) basedir=$val ;;
+		--mandir) mandir=$val ;;
+		--man1dir) man1dir=$val ;;
+		--with-perl) perl=$val ;;
+		--with-gs) gs=$val ;;
+		*)
+			echo "unexpected parameter $arg"
+			exit 1
+			;;
+	esac
+done
+
+# Default values for commands
+perl=${perl:-`which perl`}
+perl=${perl:-/usr/bin/perl}
+gs=${gs:-gs}
+
+# Default paths
+prefix=${prefix:-/usr}
+bindir=${bindir:-$prefix/bin}
+datadir=${datadir:-$prefix/share}
+basedir=${basedir:-$datadir/u2ps}
+mandir=${mandir:-$datadir/man}
+man1dir=${man1dir:-$mandir/man1}
+
+
+# The checks won't change anything, but it may be useful
+# to warn the user if something does not look right
+
+echo -n > $log
+
+checking "if $perl runs"
+run $perl -e 'exit(0)'
+result "ok, it does" "no" "perl is absolutely necessary"
+
+checking "for Encode"
+run perl -MEncode -e "exit(0);"
+result "found" "not found" "u2ps won't run without Encode"
+
+checking "for Text::CharWidth"
+run perl -MText::CharWidth -e "exit(0);"
+result "found" "not found" "u2ps won't run without Text::Charwidth"
+
+checking "if $gs runs"
+echo "quit" > conftest.ps
+run $gs -dQUIET -dBATCH -sDEVICE=nullpage conftest.ps
+result "ok, it does" "no" "ghostscript is necessary to use u2ps"
+rm conftest.ps
+
+echo "Updating Makefile"
+
+sed -i \
+	-e "/^perl =/s#=.*#= $perl#"\
+	-e "/^gs =/s#=.*#= $gs#"\
+	-e "/^bindir =/s#=.*#= $bindir#"\
+	-e "/^basedir =/s#=.*#= $basedir#"\
+	-e "/^man1dir =/s#=.*#= $man1dir#"\
+	Makefile
+
+echo
+echo "Configuration updated. Check the values below, then run make."
+echo
+echo "perl path: $perl"
+echo "ghostscript command: $gs"
+echo
+echo "u2ps executable dir: $bindir"
+echo "u2ps auxiliary files dir: $basedir"
+echo "man section 1 path: $man1dir"
+echo 

@@ -1,0 +1,621 @@
+%!
+
+% t2pt42, TTF to PostScript Type 42 font converter
+% Copyright (C) 2008  Alex Suykov <axs@ukr.net>
+% 
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+/printf/ProcSet findresource { def } forall
+/recode/ProcSet findresource { def } forall
+/unpack/ProcSet findresource { def } forall
+/reduce.bstr/ProcSet findresource { def } forall
+
+% ------------------------------------------------------------------------------
+
+/MacRomanEncoding dup /Encoding findresource def
+/Encoding/ISOLatin1Encoding/Encoding findresource def
+/Lga dup /Unidata findresource def
+
+/os_2 (OS/2) cvn def
+/cvt_ (cvt ) cvn def
+/max-cs-str-len 65534 def
+/max-bytes-per-line 32 def
+
+/src-name-ids <<
+	0	/Notice
+	1	/FamilyName
+	2	/SubFamilyName
+	3	/UniqueSFI
+	4	/FullName
+	5	/Version
+	6	/FontName
+	7	/Trademark
+	8	/Manufacturer
+	9	/Designer
+	10	/Description
+	11	/VendorURL
+	12	/DesignerURL
+	13	/License
+	14	/LicenseURL
+	16	/PreferredFamily
+	17	/PreferredSubfamily
+	18	/CompatibleFull
+	19	/SampleText
+>> def
+
+% ------------------------------------------------------------------------------
+
+% /name { proc } if-table *
+/if-table {
+	exch src-fdir exch .knownget {
+		aload pop exch
+		src-file exch setfileposition
+		exch exec
+	} if
+} bind def
+
+% N-things [ N-names ] -> -
+/name-things {
+	dup length 1 sub -1 0 {
+		1 index exch get		% ... names name
+		3 2 roll def			% ... names
+	} for pop
+} bind def
+
+/decode-procs <<
+	16#00000001 { ucs2be-to-utf8 }
+	16#00000003 { ucs2be-to-utf8 }
+	16#00030001 { ucs2be-to-utf8 }
+>> def
+
+% platformID platformSubId string -> decoded-string
+% stub for now
+/decode-string {
+	3 1 roll
+	exch 16 bitshift or
+	decode-procs exch .knownget { exec } if
+} bind def
+
+% ------------------------------------------------------------------------------
+
+% { -> src-file, src-length }
+% (file.ttf) -> -
+/open-src-file {
+	dup status not {
+		(Can't stat %1!s\n) die
+	} if
+	pop pop exch pop
+	/src-length exch def
+	(r) file /src-file exch def
+} bind def
+
+/read-src-fdir {
+	src-file [ 4/x /n 6/x ] runpack
+	10 dict begin {
+		src-file [ 4/a /N/N/N ] runpack
+		3 array astore exch cvn exch def
+	} repeat currentdict end /src-fdir exch def
+} bind def
+
+/read-src-head {
+	pop % disregard length
+	src-file [ /F/F 8/x /n/n 16/x 4/i /n/n/n /n/n ] runpack
+	10 dict begin
+		[ /version/fontRevision /flags/unitsPerEm
+		  /xMin/yMin/xMax/yMax
+		  /macStyle/lowestRecPPEM/fontDirectionHint
+		  /indexToLocFormat/glyphDataFormat ] name-things
+	currentdict end /src-head exch def
+} bind def
+
+/read-src-name {
+	pop
+	src-file fileposition				% base
+	src-file [ /n/n/n ] runpack			% base format count sO
+	4 3 roll add 3 1 roll				% base format count
+	exch dup 0 ne {
+		(Unknown 'name' table format %i\n) printf
+	} {
+		pop dup dict begin			% base count
+		[ exch {
+			[ src-file [ 6/n ] runpack ]
+		} repeat ] {
+			%dup 2 get (name: lang=%i\n) printf
+			%dup 2 get 0 ne { pop } {
+			aload pop 4 3 roll pop	% base pl ps ni len off
+			5 index add
+			read-src-name-single	% base
+			%} ifelse
+		} forall pop
+		currentdict end /src-name exch def
+	} ifelse
+} bind def
+
+% pl ps ni len Off -> -
+/read-src-name-single {
+	%(name: pl=%5!i ps=%4!i ni=%3!i len=%2!i off=%1!i\n) rprintf
+	3 2 roll src-name-ids exch .knownget not {
+		4 { pop } repeat
+	} {						% pl ps len Off name
+		dup currentdict exch known not {
+			5 1 roll				% name pl ps len Off
+			src-file exch setfileposition
+			[ exch /a ] src-file exch runpack 	% name pl ps string
+			decode-string def
+		} {
+			5 { pop } repeat
+		} ifelse
+	} ifelse
+} bind def
+
+/read-src-post-2.0 {
+	src-file [ /n ] runpack				% len count
+	exch 2 sub 1 index 2 mul sub dup 0 le {
+		('post' 2.0 subtable is too short\n) print
+		<< >>
+	} {						% count len-left
+		exch src-file exch /n rarray		% len-left [ idxs ]
+		exch src-file exch rpsa exch		% [ names ] [ idxs ]
+		10 dict begin
+		0 1 2 index length 1 sub {		% [ N ] [ I ] i
+			1 index 1 index get {		% [ N ] [ I ] i Ii
+				dup 255 le {
+					MacRomanEncoding exch get
+					def exit
+				} if
+				dup 257 le { pop pop exit } if
+				dup 32768 ge { pop pop exit } if
+				258 sub
+				3 index exch get cvn
+				def exit
+			} loop
+		} for pop pop
+		currentdict end
+	} ifelse
+} bind def
+
+/src-post-formats <<
+	2.0 //read-src-post-2.0
+	3.0 { pop << >> }
+>> def
+
+/read-src-post {
+	28 sub dup 0 lt {
+		('post' table is too short\n) printf
+	} {
+	10 dict begin
+		src-file [ /F/F /i/i /N /N/N /N/N ] runpack
+		[ /format/ItalicAngle
+		  /UnderlinePosition/UnderlineThickness
+		  /isFixedPitch
+		  /minMemType42/maxMemType42
+		  /minMemType1/maxMemType1
+	  	] name-things
+		src-post-formats format .knownget not { pop } {
+			exec /names exch def
+		} ifelse
+	currentdict end /src-post exch def
+	} ifelse
+} bind def
+
+/read-src-cmap {
+	pop src-file fileposition				% off
+
+	[ src-file [ 2/x/n ] runpack {
+		[ src-file [ /N/N ] runpack ]
+	} repeat ] {
+		aload pop exch					% off off1 id
+		%(cmap: fmt=%1!#010X off=%3!i+%2!i\n) printf
+		dup 16#00000003 eq 1 index 16#00030001 eq or {
+			pop 1 index add
+			src-file exch setfileposition		% off
+			src-file [ /n ] runpack			% off fmt
+			src-cmap-formats exch .knownget {
+				10 dict begin
+				exec
+				currentdict end /src-cmap exch def
+				exit
+
+			} if
+		} {
+			pop pop
+		} ifelse
+	} forall pop
+} bind def
+
+/read-src-cmap-4 {
+	src-file [ /n 2/x /n 6/x ] runpack 2 idiv		% len c
+	%(cmap: len=%2!i segCount=%1!i\n) printf
+	exch 1 index 8 mul 16 add sub				% c ll
+	dup 0 lt {
+		('cmap' format 4 subtable is too short\n) print
+		pop pop
+	} {
+		exch						% ll c
+		src-file 1 index /n rarray exch			% ll eC c
+		src-file [ 2/x ] runpack
+		src-file 1 index /n rarray exch			% ll eC sC c
+		src-file 1 index /n rarray exch			% ll eC sC id c
+		src-file 1 index /n rarray exch			% ll eC sC id ir c
+		%(cmap: %1!i segments\n) printf
+		6 5 roll 2 idiv
+		src-file exch /n rarray	exch			% eC sC id ir gI c
+		0 1 3 2 roll 1 sub {				% eC sC id ir gI : i
+			4 index 1 index get exch
+			6 index 1 index get exch		% : s e i
+			5 index 1 index get exch		% : s e d i
+			5 index 1 index get exch		% : s e d r i
+			read-src-cmap-4-do-segment
+		} for
+		5 { pop } repeat
+	} ifelse
+} bind def
+
+% ir gI s e d r i -> ir gI
+/read-src-cmap-4-do-segment {
+	1 index 0 eq {
+		pop pop 3 1 roll 1 exch {				% d c
+			dup 2 index add 16#FFFF and
+			%(\tU+%2!04X => %1!5i\n) printf
+			def
+		} for pop
+	} {
+		%(s=%5!04X e=%4!04X d=%3!i r=%2!04X i=%1!i\n) rprintf
+		4 index 4 index 1 exch {				% s e d r i | c
+			dup 2 index add					% | c i+c
+			3 index 2 idiv add				% | c i+c+idr/2
+			6 index sub					% | c i+c+ir2-s
+			8 index length sub				% | c p
+			7 index length mod
+			7 index exch get
+			%(\tU+%2!04X => %1!i\n) rprintf
+			def
+		} for
+		5 { pop } repeat
+	} ifelse
+} bind def
+
+/src-cmap-formats <<
+	4 //read-src-cmap-4
+>> def
+
+% len -> -
+/read-src-loca {
+	src-head /indexToLocFormat get 0 eq {
+		2 idiv src-file exch /n rarray
+		0 1 2 index length 1 sub {
+			1 index 1 index get 2 mul	% [ ] i v
+			2 index 3 1 roll put
+		} for
+	} {
+		4 idiv src-file exch /N rarray
+	} ifelse
+	/src-loca exch def
+} bind def
+
+% ------------------------------------------------------------------------------
+
+/make-dst-tlst {
+	% We should have selected tables first, then calculate font
+	% directory length and only then put right offsets and padding.
+	% BUT font directory length is always a multiple of 4, so it
+	% won't affect padding anyway. Just remember offsets here are
+	% incomplete, fdir length should be added to their values.
+	[ 0 [  cvt_ /fpgm /glyf /head /hhea /hmtx
+	      /loca /maxp /name /prep
+	    ] {
+		dup src-fdir exch .knownget not { pop } {	% p /t [ cs off len ]
+			aload pop				% p /t cs off len
+			5 4 roll dup				% /t cs off len p p
+			2 index 2 mod				% /t cs off len p p %
+			add					% /t cs off len p p+%
+			2 index add				% /t cs off len p p+%+len
+			6 1 roll				% p+len+pad /tbl cs off len p
+			5 array astore exch 
+		} ifelse
+	    } forall pop
+	] /dst-tlst exch def
+	% [ /name csum old-offset length new-offset pad-lenght ]
+	%dst-tlst {
+	%	aload pop (%% '%4s' [%08X] %7i +%-6i -> %6i\n) rprintf
+	%} forall
+	%pstack quit
+} bind def
+
+% n -> p
+% p = max(p): 2**p <= n
+/lowest-2-power-le {
+	0 0 1 15 {						% n p i
+		1 1 index bitshift 3 index le {
+			exch pop
+		} {
+			pop
+		} ifelse
+	} for
+	exch pop
+} bind def
+
+/make-dst-fdir {
+	/dst-ntables dst-tlst length def
+	/dst-entrysel dst-ntables lowest-2-power-le def
+
+	12 dst-ntables 16 mul add string		% fdir
+	dup  0 16#00010000 put_N
+	dup  4 dst-ntables put_n
+	dup  6 dst-entrysel 4 add 1 exch bitshift put_n
+	dup  8 dst-entrysel 1 add put_n
+	dup 10 dst-ntables 16 mul dst-entrysel 4 add 1 exch bitshift add put_n
+
+	12 dst-tlst {					% fdir p [ ]
+		2 index 2 index        2 index 0 get 4 string cvs put_a4
+		2 index 2 index  4 add 2 index 1 get put_N
+		2 index 2 index  8 add 2 index 4 get 5 index length add put_N
+		2 index 2 index 12 add 2 index 3 get put_N
+		pop 16 add 
+	} forall pop
+
+	/dst-fdir exch def
+} def
+
+/make-dst-FontName {
+	false
+	/src-name where {
+		pop src-name /FontName .knownget {
+			exch pop true
+		} if
+	} if not {
+		(FontName is unknown\n) print
+	} {
+		/dst-FontName exch cvn def
+	} ifelse
+} def
+
+% dst-glyf-div: [ l1 l2 ... ln ]
+% li is length of glyf table piece to dump as a single PostScript string
+/make-dst-glyf-div {
+	%src-loca ===
+	[ 0 0 1 src-loca length 2 sub {
+		dup 1 add src-loca exch get
+		exch src-loca exch get sub
+		%(%% glyf len: %1!i\n) printf
+		1 index 1 index add max-cs-str-len le { add } if
+	} for ]
+	%dup length (%% glyf-div length: %i\n) printf
+	/dst-glyf-div exch def
+} def
+
+/make-dst-CharStrings {
+	100 dict
+	/src-post where {
+		pop
+		src-post /names .knownget {
+			{ 2 index 3 1 roll exch put } forall
+		} if
+	} if
+	/src-cmap where {
+		pop src-cmap {
+			2 index 3 1 roll
+			exch charname exch put
+		} forall
+	} if
+	/dst-CharStrings exch def
+} def
+
+/make-dst-xuid {
+	% stub for now
+	realtime srand
+	/dst-xuid [ 107 42 rand ] def
+} def
+
+/charname {
+	dup Lga exch .knownget {
+		exch pop
+		dup type /arraytype eq { 0 get } if
+	} {
+		(uni%04X) sprintf
+	} ifelse
+} def
+
+% dict key -> -
+/dump-kv-if {
+	exch 1 index .knownget {
+		(\t%l %l\n) rprintf
+	} {
+		pop
+	} ifelse
+} def
+
+% dict [ keys ] -> -
+/dump-kvs {
+	{ 1 index exch dump-kv-if } forall pop
+} def
+
+/dump-dst-FontInfo {
+	(/FontInfo <<\n) print
+	src-name [
+		/FullName /FamilyName
+		/SubFamilyName /Notice
+		/LicenceURL /SampleText
+		/Version
+	] dump-kvs
+	src-post [
+		/isFixedPitch /italicAngle
+		/underlinePosition /underlineThickness
+	] dump-kvs
+	(>> def\n) print
+} def
+
+/dump-dst-bbox {
+	src-head begin
+		xMin yMin xMax yMax
+		4 { 1000 div 4 1 roll } repeat
+		(/FontBBox [ %f %f %f %f ] def\n)
+		rprintf
+	end
+} def
+
+/phs {
+	(<) print
+	dup length 0 {					% str len p
+		dup 2 index ge { exit } if
+		1 index 1 index sub			% str len p len-p
+		dup max-bytes-per-line ge {
+			3 index 2 index max-bytes-per-line
+			getinterval (%H) printf
+			max-bytes-per-line gt { (\n ) print } if
+			max-bytes-per-line add
+		} {
+			3 index exch 2 index exch
+			getinterval (%H) printf
+			exit
+		} ifelse
+	} loop
+	(>\n) print
+	pop pop pop
+} def
+
+% len -> -
+/dump-dst-sfnt-misc {
+	dup {						% len len
+		%dup 0 le { pop exit } if
+		dup max-cs-str-len gt {
+			max-cs-str-len sub
+			src-file max-cs-str-len string readstring not {
+				/dump-dst-sfnt-table/ioerror signalerror
+			} if
+			phs
+		} { 
+			src-file exch string readstring not {
+				/dump-dst-sfnt-table/ioerror signalerror
+			} if
+							% len string
+			exch 2 mod 0 ne { (\000) concatstrings } if
+			phs exit
+		} ifelse
+	} loop
+} def
+
+/dump-dst-sfnt-glyf {
+	pop
+	0 0 1 dst-glyf-div length 2 sub {
+		dst-glyf-div exch get dup
+		src-file exch string readstring not {
+			/dump-dst-sfnt-glyf/ioerror signalerror
+		} if
+		phs
+		add
+	} for						% sum(n-1)
+	dst-glyf-div dup length 1 sub get dup		% sum(n-1) lenn lenn
+	src-file exch string readstring not {
+		/dump-dst-sfnt-glyf/ioerror signalerror
+	} if						% sum(n-1) lenn data
+	3 1 roll add 2 mod 0 ne {
+		(\000) concatstrings 
+	} if
+	phs
+} def
+
+/dump-dst-sfnts {
+	(/sfnts [\n) print
+	dst-fdir phs
+	dst-tlst {
+		dup 0 get (%% '%4s'\n) printf
+		dup 2 get src-file exch setfileposition
+		dup 3 get
+		1 index 0 get /glyf eq {
+			dump-dst-sfnt-glyf
+		} {
+			dump-dst-sfnt-misc
+		} ifelse pop
+	} forall
+	(] def\n) print
+} def
+
+/dump-dst-Encoding {
+	(/Encoding [\n) print
+	0 1 255 {
+		dup 4 mod 0 eq { (\t) print } if
+		dup Encoding exch get			% i name
+		dup dst-CharStrings exch known not {
+			pop /.notdef
+		} if					% i name
+		dup (%l) printf
+		exch 4 mod 3 eq {
+			(\n)
+		} {
+			length 1 add 8 lt { (\t\t) } { (\t) } ifelse
+		} ifelse print
+	} for
+	(] def\n) print
+} def
+
+/dump-dst-CharStrings {
+	dst-CharStrings /.notdef 0 put
+	(/CharStrings <<\n) print
+	dst-CharStrings {
+		(\t%l %l\n) rprintf
+	} forall
+	(>> def\n) print
+} def
+
+/dump-dst {
+	(%!PS-Adobe-3.0 Resource-Font\n) print
+	(10 dict begin\n) printf
+	dst-FontName (/FontName %l def\n) printf
+	(/FontType 42 def\n) print
+	dump-dst-FontInfo
+	(/FontMatrix [ 1.0 0.0 0.0 1.0 0.0 0.0 ] def\n) print
+	(/PaintType 0 def\n) print
+	(/XUID [ ) print dst-xuid { (%l ) printf } forall (] def\n) print
+	dump-dst-bbox
+	dump-dst-Encoding
+	dump-dst-CharStrings
+	dump-dst-sfnts
+	(FontName currentdict end definefont pop\n) print
+} def
+
+% ------------------------------------------------------------------------------
+
+/dump-dict {
+	exch print (: \n) print
+	{ (\t%l  %l\n) rprintf } forall
+} def
+
+% /name { proc } if-table *
+/if-table {
+	exch src-fdir exch .knownget {
+		aload pop 3 2 roll pop exch
+		src-file exch setfileposition
+		exch exec
+	} if
+} def
+
+% ------------------------------------------------------------------------------
+
+ARGUMENTS 0 get open-src-file
+read-src-fdir
+/head { read-src-head } if-table
+/name { read-src-name } if-table
+/post { read-src-post } if-table
+/cmap { read-src-cmap } if-table
+/loca { read-src-loca } if-table
+
+make-dst-FontName
+make-dst-xuid
+make-dst-tlst
+make-dst-fdir
+make-dst-glyf-div
+make-dst-CharStrings
+
+dump-dst

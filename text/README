@@ -1,0 +1,12 @@
+Sample input files for u2ps.
+
+Make sure to run u2ps from top-level source directory,
+it won't find its files otherwise.
+Something like this:
+
+	./u2ps.px text/ansi.txt
+
+
+Output for alph.txt and utf8.txt depends on available fonts.
+Without additional efforts, CJK and Thai characters are likely
+to be missing.

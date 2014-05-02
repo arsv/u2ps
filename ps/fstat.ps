@@ -1,0 +1,69 @@
+%!
+
+% This file should be executed with -dWRITESYSTEMDICT
+systemdict wcheck not {
+	(fstat.ps: systemdict is write-protected) cvn cvx /invalidaccess signalerror
+} if
+
+true setglobal
+systemdict begin
+
+/gcode-table 20 dict def
+/fstat-table 20 dict def
+
+% Note all font/glyph pairs by tapping glyphshow
+%	glyph -> -
+/glyphshow {
+	currentglobal exch true setglobal	% G glyph
+
+	currentfont /FontName get		% G glyph fn
+	dup fstat-table exch .knownget not {	% G glyph fn
+		10 dict dup 2 index exch
+		fstat-table 3 1 roll put
+	} if					% G glyph fn font-char-dict
+	
+	dup 3 index known {			% G glyph fn fcd
+		pop pop				% G glyph
+	} {					% G glyph fn fcd
+		2 index true put pop		% G glyph
+	} ifelse
+
+	exch setglobal
+	//glyphshow
+} def
+
+% Tap show as well, and get glyph names by looking at font's Encoding
+/show {
+	currentglobal exch true setglobal
+
+	currentfont /FontName get		% str fn
+	dup fstat-table exch .knownget not {	% str fn
+		10 dict dup 2 index exch
+		fstat-table 3 1 roll put
+	} if					% str fn fd
+
+	currentfont /Encoding get		% str fn fd en
+	3 index {				% str fn fd en | c
+		1 index exch get		% str fn fd en | g
+		2 index 1 index known {		% str fn fd en | g
+			pop
+		} {
+			2 index exch true put
+		} ifelse
+	} forall pop pop pop
+
+	exch setglobal
+	//show
+} def
+
+% Note all unicode points that were used
+/fontset.stat.glyph { dup systemdict /gcode-table get exch true put } def
+
+% Disable Type 1 font protection
+/executeonly {  } bind def
+/noaccess {  } bind def
+
+end
+
+% No need to bother with currentglobal since it's known how this file will be called.
+false setglobal

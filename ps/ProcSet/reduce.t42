@@ -1,0 +1,691 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Type42 font reduction
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+%%EndComments
+
+/reduce.t42 40 dict begin
+
+/printf /ProcSet findresource { def } forall
+/reduce.astr/ProcSet findresource { def } forall
+/reduce.bstr/ProcSet findresource { def } forall
+/reduce.dump/ProcSet findresource { def } forall
+
+% font -> [ /name => [ off, len ] ]
+/extract-font-directory {
+5 dict begin
+	/numTables src-sfnt 4 2 sa-getinterval-string 0 get_n def
+	/tabIndex src-sfnt 12 numTables 16 mul sa-getinterval-string def
+
+	%(Font directory:\n) print
+	<< 0 1 numTables 1 sub {
+		16 mul					% o
+
+		tabIndex 1 index       get_a4		% o name
+		tabIndex 2 index  8 add get_N		% o name off
+		tabIndex 3 index 12 add get_N		% o name off len
+
+		%(  '%3!4s' %2!-6i +%1!i\n) printf
+
+		2 array astore				% o name [ off len ]
+		3 2 roll pop				% name [ off len ]
+	} for >>
+end
+} def
+
+% font [ glyph-names ] -> [ glyph-indexes ]
+/convert-names-to-indexes {
+	exch /CharStrings get exch		% CS g-names
+	dup length array exch			% CS g-idxs g-names
+	dup length 1 sub 0 1 3 2 roll {		% CS g-idxs g-names | i
+		dup 2 index exch get		% | i name
+		4 index exch get		% | i idx
+		3 index 3 1 roll put		% |
+	} for
+	pop exch pop
+} def
+
+% { src-fdir, src-sfnt } 
+% /name off len -> (string)
+/get-table-interval {
+	src-fdir 3 index .knownget {
+		aload pop		% c-off c-len t-off t-len
+		4 2 roll		% t-off t-len c-off c-len
+		%1 index 1 index add	% t-off t-len c-off c-len c-end
+		%3 index gt {
+		%	(get-table-interval: chunk %2!i+%1!i out of range in %5!l) printf
+		%} if
+		3 2 roll pop		% t-off c-off c-len
+		3 1 roll add exch	% off len
+		src-sfnt 3 1 roll sa-getinterval-string
+		exch pop
+	} {
+		pop pop
+		(get-table-interval: undefined table %l) sprintf error
+	} ifelse
+} def
+
+% { src-fdir, src-sfnt } 
+% /name false -> (string)
+% /name true  -> [ (string) ... (string) ]
+/get-table {
+	exch
+	src-fdir 1 index .knownget {
+		exch pop
+		aload pop		% t-off t-len
+		src-sfnt 3 1 roll sa-getinterval
+		exch { join-strings } if
+	} {
+		pop
+		(get-table: undefined table %l) sprintf error
+	} ifelse
+} def
+
+% { src-fdir, src-sfnt } -> << /prop val >>
+% Extracts some global font info, scattered across different tables
+/extract-font-info {
+10 dict begin
+	/head true get-table 50 get_n /indexToLocFormat exch def
+	/hhea true get-table 34 get_n /numOfLongHorMetrics exch def
+currentdict end
+} def
+
+% { src-fdir, src-sfnt, src-info.indexToLocFormat } -> loca-array
+/extract-loca {
+5 dict begin
+	%(loca:\n) print
+	src-info /indexToLocFormat get {
+		%(  indexToLocFormat: %1!i\n) printf
+			% offlen offmul get-off
+		dup 0 eq { pop /ol 2 /om 2 /get-off /get_n load exit } if
+		dup 1 eq { pop /ol 4 /om 1 /get-off /get_N load exit } if
+		%(extract-loca: bad indexToLocFormat value %i) sprintf error
+	} loop 3 { def } repeat
+	%ol om (  ol=%i om=%i\n) rprintf
+				
+	/loca dup false get-table def
+	%(loca raw data:\n) print
+	%loca phsa (\n) print
+	/ngl loca sa-length ol idiv def
+
+	ngl array
+	0 1 ngl 1 sub {
+		dup
+		loca exch ol mul ol sa-getinterval-string 0 get-off om mul
+		2 index 3 1 roll put
+	} for
+
+	%0 1 2 index length 1 sub { 1 index 1 index get (    [%i] %i\n) rprintf } for
+end
+} def
+
+% { src-fdir, src-loca, dst-glyf-data, dst-comp-comp }
+% glyph-index -> -
+% Add specified glyph to dst-glyf-data, then add all glyphs it
+% depends upon, leaving scratches in dst-comp-comp.
+/transfer-glyph-data {
+	%(transfering glyph %1!i {\n) printf
+	dup src-loca exch get
+	1 index 1 add src-loca exch get
+	1 index sub				% idx off len
+	%(  at glyf [%2!i +%1!i]\n) printf
+	/glyf 3 1 roll get-table-interval	% idx (data)
+	dst-glyf-data 2 index 2 index put	% idx (data)
+
+	% Check whether it's a composite glyph.
+	% If so, transfer its components and prepare for relinking
+	dup length 14 gt not {
+		%(    glyph too short, ignoring\n) print
+		pop pop
+	} {
+		%(    glyph data: %1!H\n) printf
+		dup 0 get_n 16#FFFF eq not {
+			%dup 0 get_n (    normal glyph (%i contours)\n) printf
+			pop pop
+		} {
+			%(    composite glyph\n) print
+			composite-components	% idx cc
+			%dup {
+			%	aload pop (      offset=%i old-index=%i\n) rprintf
+			%} forall
+
+			%% transfer components
+			dup {
+				aload pop exch pop
+				transfer-glyph-data
+			} forall
+			% make notes to remap component
+			% indexes later, when dst-imap/dst-loca
+			% will be ready
+			dst-comp-comp 3 1 roll put
+		} ifelse
+	} ifelse
+	%(} done with glyph\n) print
+} def
+
+% glyph-data -> [ [ offset old-component-index ] ... ]
+/composite-components {
+	mark exch
+	10 {
+		1 index 1 index 2 add get_n			% data p cn
+		%(component: %1!i\n) printf
+		1 index 2 add exch 2 array astore		% data p [ cn p ]
+		3 1 roll
+		1 index 1 index get_n exch 4 add exch {		% data p flags
+			% ARG_1_AND_2_ARE_WORDS
+			dup 16#0001 and 0 ne { 4 } { 2 } ifelse 3 2 roll add exch
+								% data p+o flags
+			% WE_HAVE_A_SCALE
+			dup 16#0008 and 0 ne { exch 2 add exch exit } if
+			% WE_HAVE_AN_X_AND_Y_SCALE
+			dup 16#0040 and 0 ne { exch 4 add exch exit } if
+			% WE_HAVE_A_TWO_BY_TWO
+			dup 16#0080 and 0 ne { exch 8 add exch exit } if
+
+			exit
+		} loop						% data p+O flags
+		% MORE_COMPONENTS
+		16#0020 and 0 eq { exit } if			% data p+O
+		1 index length 1 index 4 add le {
+			(MORE_COMPONENTS set but no more bytes left\n) print
+			(%2!H\n) printf
+			exit
+		} if
+	} loop							% data p+O
+	pop pop
+	counttomark array astore exch pop
+} def
+
+% { src-font src-fdir, src-loca, dst-glyf-data }
+% [ glyph-names ] transfer-glyphs -
+/transfer-glyphs {
+	0 transfer-glyph-data
+	src-font exch convert-names-to-indexes {
+		transfer-glyph-data
+	} forall
+} def
+
+% { src-loca, dst-glyf-data }
+% - -> [ old-idx-0 old-idx-2 ... ]
+% Due to hmtx format limitations, glyphs can't be
+% shuffled arbitrary. To keep loca/hmtx processing
+% separated, we will pack glyphs into new font
+% exactly in the same order the appeared in the old one.
+% Note: dst-imap and src-loca have different format
+%
+% XXX: ok, hmtx code no longer needs this...
+/make-dst-imap {
+	dst-glyf-data dup length array
+	0
+	0 1 src-loca length 2 sub {		% dst-gd dst-imap p idx
+		3 index 1 index known not { pop } {
+			2 index 2 index 3 2 roll put
+			1 add
+		} ifelse
+	} for
+	pop exch pop
+} def
+
+% { src-sfnt, src-info.numOfLongHorMetrics, dst-imap }
+% - -> num
+/find-dst-num-long-hor-metrics {
+	src-info /numOfLongHorMetrics get
+	0 dst-imap {				% nofhm count idx
+		2 index lt { 1 add } if
+	} forall
+	exch pop
+} def
+
+% { dst-imap dst-nlhm src-info.numOfLongHorMetrics }
+% - -> [ (sa-representation-of-raw-dst-hmtx-data) ]
+/make-dst-hmtx {
+	dst-imap length array				% dh
+	src-info /numOfLongHorMetrics get		% dh snlhm
+	0 1 dst-imap length 1 sub {			% dh snlhm | i
+		dup dst-imap exch get			% dh snlhm | i idx
+		dup 3 index lt {
+			% long metrix
+			4 mul 4				% dh snlhm | i 4*idx 4
+			/hmtx 3 1 roll get-table-interval	% dh s | i lhm
+		} {						% dh s | i idx
+			% short metrix
+			2 index sub 2 mul			% dh s | i (idx-s)*2
+			2 index 4 mul add 2			% dh s | i s*4+(idx-s)*2
+			/hmtx 3 1 roll get-table-interval	% dh s | i lsb
+			2 index 1 sub 4 mul 2
+			/hmtx 3 1 roll get-table-interval	% dh s | i lsb adv
+			exch concatstrings			% dh s | i lhm
+		} ifelse
+		3 index 3 1 roll put
+	} for pop
+} def
+
+% { src-sfnt, dst-nlhm }
+/make-dst-hhea {
+	/hhea true get-table dup 34 dst-hmtx length put_n
+	%dup (hhea: %H\n) printf
+	%dst-hmtx join-strings (hmtx: %H\n) printf
+} def
+
+/make-dst-maxp {
+	/maxp true get-table dup 4 dst-imap length put_n
+} def
+
+% { dst-imap }
+% - -> [ loca table values ]
+/make-dst-loca-data {
+	dst-imap length 1 add array
+	dup 0 0 put
+	0 1 dst-imap length 1 sub {
+		dup dst-imap exch get		% offs i key
+		dst-glyf-data exch get length	% offs i len
+		exch 1 add exch			% offs i+1 len
+		2 index 3 1 roll put
+	} for
+						% offs
+	dup length 1 sub 1 1 3 2 roll {
+		1 index 1 index get		% offs i offs[i]
+		2 index 2 index 1 sub get add	% offs i offs[i]+offs[i-1]
+		2 index 3 1 roll put
+	} for
+} def
+
+% { dst-loca-data, src-info }
+% - -> [ (loca data in sa form) ]
+/make-dst-loca {
+	dst-loca-data length array
+	src-info /indexToLocFormat get 0 eq {
+		{ 2 idiv 2 string dup 0 4 3 roll put_n }
+	} {
+		{ 4 string dup 0 4 3 roll put_N }
+	} ifelse
+
+	0 1 dst-loca-data length 1 sub {
+		dup dst-loca-data exch get		% arr proc i off
+		2 index exec				% arr proc i (off)
+		3 index 3 1 roll put
+	} for
+
+	pop
+} def
+
+%% { dst-glyf }
+%% - -> size
+%/calc-dst-glyf-table-size {
+%	0 dst-glyf-data { exch pop length add } forall
+%} def
+
+% { src-fdir }
+% - -> [ /head /hhea ... /glyf ]
+% Why this is needed? Perhaps some tables may be missing,
+% like prep or fpgm
+/make-dst-tables-list {
+	mark
+	[ /head null src-fdir /head get aload pop exch pop ]
+	[ /maxp null dst-maxp length ]
+	[ /hhea null dst-hhea length ]
+	[ /hmtx null dst-hmtx sa-length ]
+	src-fdir /prep .knownget {
+		[ exch aload pop exch pop /prep null 3 2 roll ]
+	} if
+	src-fdir /fpgm .knownget {
+		[ exch aload pop exch pop /fpgm null 3 2 roll ]
+	} if
+	src-fdir (cvt ) cvn .knownget {
+		[ exch aload pop exch pop (cvt ) cvn null 3 2 roll ]
+	} if
+	[ /loca null dst-loca sa-length ]
+	[ /glyf null dst-glyf sa-length ]
+
+	counttomark array astore exch pop
+
+	dup
+	dup length 16 mul 12 add
+	exch {					% p t
+		dup 1				% p t t 1
+		3 index put			% p t
+		2 get
+		dup 2 mod 0 ne { 1 add } if	% p padded-len
+		add				% p+pl
+	} forall pop
+} def
+
+% { dst-tlst }
+% - -> (font-dir-raw-data)
+% 
+/make-dst-font-directory {
+5 dict begin
+	/scalerType 16#00010000 def
+	/numTables dst-tlst length def
+	null
+	15 -1 0 {
+		dup 1 exch bitshift numTables le {
+			exch pop exit
+		} { pop } ifelse
+	} for
+	/entrySelector exch def
+	/searchRange entrySelector 4 add 1 exch bitshift def
+	/rangeShift numTables 16 mul searchRange sub def
+
+	/fdir 12 16 numTables mul add string def
+
+	fdir  0 scalerType put_N
+	fdir  4 numTables put_n
+	fdir  6 searchRange put_n
+	fdir  8 entrySelector put_n
+	fdir 10 rangeShift put_n
+
+	12 dst-tlst {
+		1 index  1 index 0 get 4 string cvs fdir 3 1 roll put_a4
+		1 index  4 add 16#00000000 fdir 3 1 roll put_N
+		1 index  8 add 1 index 1 get fdir 3 1 roll put_N
+		1 index 12 add 1 index 2 get fdir 3 1 roll put_N
+		pop 16 add 
+	} forall pop
+
+	fdir
+end
+} def
+
+/dump-sfnts-fontdir {
+5 dict begin
+	/fdir exch def
+	/nTbl fdir 4 get_n def
+
+	0 1 nTbl 1 sub {
+		/i exch def
+		/o i 16 mul 12 add def
+
+		/tag fdir o       get_a4 def
+		/cks fdir o  4 add get_N def
+		/off fdir o  8 add get_N def
+		/len fdir o 12 add get_N def
+
+		tag off len cks ("%s" %8i +%-8i cs=%#010X\n) rprintf
+	} for
+end
+} def
+
+% { dst-imap }
+% - -> { old-index => new-index }
+/make-dst-pami {
+	10 dict
+	0 1 dst-imap length 1 sub {
+		dup dst-imap exch get
+		exch 2 index 3 1 roll put
+	} for
+} def
+
+% { dst-glyf-data, dst-comp-comp, dst-pami }
+% - -> -
+% Modifies dst-glyf-data according to marks
+% left in dst-comp-comp
+/dst-relink-composite-glyphs {
+	dst-comp-comp {
+		1 index dst-glyf-data exch get	% oidx [[marks]] (data)
+		exch {				% oidx (data) | [ off c-oidx ]
+			1 index exch		% oidx (data) | (data) [ off c-oidx ]
+			aload pop		% oidx (data) | (data) off c-oidx
+			dst-pami exch get	% oidx (data) | (data) off c-nidx
+			put_n
+		} forall
+		% (data) is a ref actually, no need to put it back
+		pop pop
+	} forall
+} def
+
+% { dst-glyf-data }
+% - -> CharStrings
+/make-dst-CharStrings {
+	dst-pami 10 dict
+	src-font /CharStrings get {			% oi->ni n->ni n oi
+		3 index exch .knownget not { pop } {	% oi->ni n->ni n ni
+			2 index 3 1 roll put
+		} ifelse
+	} forall
+	exch pop
+} def
+
+% { src-font.Encoding, dst-CharStrings }
+% - -> [ encoding-vector ]
+% Not really necessary, but anyway: copy original encoding,
+% leaving only glyphs actually present in reduced font.
+/make-dst-encoding {
+	mark
+	src-font /Encoding get {
+		dup dst-CharStrings exch known not { pop /.notdef } if
+	} forall
+	counttomark array astore exch pop
+} def
+
+% { src-font }
+% - -> /Name
+/make-dst-name {
+	src-font /FontName get
+} def
+
+% { src-font }
+% - -> [ XUID ]
+/make-dst-xuid {
+	src-font /XUID .knownget not {
+		% where did these numbers came from?..
+		[ 107 42 realtime ]
+	} if
+	dup length array copy
+	dup dup 2 get srand rand 2 exch put
+} def
+
+% { dst-glyf-data, dst-imap }
+% - -> [ sa-string ]
+% Wrap glyf-data into an array suitable for phsa
+/make-dst-glyf {
+	dst-imap length array
+	0 1 dst-imap length 1 sub {
+		dup dst-imap exch get
+		dst-glyf-data exch .knownget not {
+			(No glyf-data entry for glyph %i\n) printf
+		} {
+			2 index 3 1 roll put
+		} ifelse
+	} for
+} def
+
+% { src-font }
+% /Key -> /Key val true
+% /Key -> false
+/src-key? {
+	dup src-font exch .knownget { true } { pop false } ifelse
+} def
+
+/src-key! {
+	dup src-font exch .knownget { true } {
+		(Required key %l not found in source font\n) printf
+		false
+	} ifelse
+} def
+
+% { dst-* }
+% - -> -
+/dump-font-head {
+	(20 dict begin\n) print
+	/FontName dst-name pkv
+	/FontType src-key! { pkv } if
+	/FontInfo src-key? { pfi } if
+	/FontMatrix src-key! { pkv } if
+	/PaintType src-key! { pkv } if
+	/FontBBox src-key! { pkv } if
+	/XUID dst-xuid pkv
+	/Encoding dst-Encoding pfe
+} def
+
+/dump-font-foot {
+	(FontName currentdict end definefont pop\n) print
+} def
+
+% { dst-tlst, dst-* }
+% - -> -
+/dump-font-sfnts {
+	(/sfnts [\n) print
+	dst-fdir dump-font-sfnt-plain
+	dst-tlst {
+		0 get dup
+		dump-font-sfnt-call exch .knownget not {
+			%(%% %s -- don't know how to print this\n) printf
+			dup (%% %s (copied)\n) printf
+			dump-font-sfnt-copy
+		} {
+			exch (%% %s\n) printf
+			exec
+		} ifelse
+	} forall
+	(] def\n) print
+} def
+
+/cvt_ (cvt ) cvn def
+
+% all funcs: (raw-data)
+/dump-font-sfnt-call <<
+	/maxp { dst-maxp dump-font-sfnt-plain }
+	/hhea { dst-hhea dump-font-sfnt-plain }
+	/hmtx { dst-hmtx dump-font-sfnt-astr }
+	/loca { dst-loca dump-font-sfnt-astr } 
+	/glyf { dst-glyf dump-font-sfnt-astr } 
+>> def
+
+/pad-string {
+	dup length 2 mod 0 ne { (\000) concatstrings } if
+} def
+
+/pad-astr {
+	dup sa-length 2 mod 0 ne {
+		dup dup length 1 sub get	% sa s
+		(\000) concatstrings
+		1 index exch			% sa sa s
+		1 index length 1 sub		% sa sa s l-1
+		exch put
+	} if
+} def
+
+% (raw-data) -> -
+/dump-font-sfnt-plain { pad-string phs (\n) print } def
+/dump-font-sfnt-astr { pad-astr phsa (\n) print } def
+/dump-font-sfnt-copy { false get-table pad-astr phsa (\n) print } def
+
+% { dst-CharStrings, dst-imap }
+% - -> -
+% The only reason this proc is longer than one line
+% is my desire to have CharStrings ordered according to
+% actual glyph disposition within glyf table.
+/dump-font-charstrings {
+	(/CharStrings <<\n) print
+	dst-CharStrings /.notdef 0 put
+
+	/dst-n dst-imap length def
+	/dst-orn dst-n array def
+	dst-CharStrings {
+		dup dst-orn exch get 				% n ni v
+		dup null eq {
+			pop exch [ exch ]
+			dst-orn 3 1 roll put
+		} {
+			3 2 roll mark exch			% ni v [ n
+			3 2 roll aload pop
+			counttomark array astore exch pop	% ni [ ]
+			dst-orn 3 1 roll put
+		} ifelse
+	} forall
+
+	0 1 dst-n 1 sub {
+		dup dst-orn exch get				% ni [ ]
+		dup null eq { pop pop } {
+			{
+				1 index (\t%l %l\n) rprintf
+			} forall pop
+		} ifelse
+	} for
+	(>> def\n) print
+} def
+
+% Data structures
+% /src-font = << original font >>
+% /src-sfnt = [ (sfnt ) (data ) (from ) (original ) (font) ]
+% /src-fdir = << /table-name [ offset length ] >>
+% /src-loca = [ off0 off1 ... offN ]
+% /dst-glyf-data = << /old-index (raw-glyph-data) >>
+% /dst-comp-comp = << /old-index [ [ offset component-old-index ] ... ] >>
+% 	only contains entries for composite glyphs
+% 	offset is relative to raw-glyph-data from dst-glyf-data
+% /dst-imap = [ old-index-0 old-index-1 ... old-index-M ]
+% 	new-index => old-index map
+% 	any old-index-i from this should also be present in dst-glyf-data
+% /dst-pami = { old-index => new-index }
+% 	imap backwards
+% /dst-glyf = [ (glyf0-raw-data) (glyf1-raw-data) ... ]
+% /dst-nlhm = int
+% 	number of long horizontal metrics (in dst font)
+% /dst-hmtx = [ sa: raw hmtx table ]
+% /dst-hhea = (raw-hhea-data)
+% /dst-loca-data = [ offset0 offset1 ... offsetN ]
+% /dst-loca = [ sa: raw loca table ]
+% /dst-tlst = [ [ /name off len ] ... ]
+% 	font directory source
+% /dst-fdir = (raw font directory data)
+
+% font [ glyphnames ] reduce-prepare dict
+/reduce-prepare {
+20 dict begin
+	/needed-glyphs exch def
+	/src-font exch def
+
+	/src-sfnt src-font /sfnts get def
+	/src-fdir extract-font-directory def
+	/src-info extract-font-info def
+	/src-loca extract-loca def
+
+	/dst-glyf-data 10 dict def
+	/dst-comp-comp 10 dict def
+
+	% keep /.notdef character
+	0 transfer-glyph-data
+	needed-glyphs transfer-glyphs
+
+	/dst-imap make-dst-imap def
+	/dst-pami make-dst-pami def
+	dst-relink-composite-glyphs
+	/dst-glyf make-dst-glyf def
+	%/dst-nlhm find-dst-num-long-hor-metrics def
+	/dst-hmtx make-dst-hmtx def
+	/dst-hhea make-dst-hhea def
+	/dst-maxp make-dst-maxp def
+	/dst-loca-data make-dst-loca-data def
+	/dst-loca make-dst-loca def
+	/dst-tlst make-dst-tables-list def
+	/dst-fdir make-dst-font-directory def
+	/dst-CharStrings make-dst-CharStrings def
+	/dst-Encoding make-dst-encoding def
+	/dst-name make-dst-name def
+	/dst-xuid make-dst-xuid def
+currentdict end
+} def
+
+% dict reduce-dump -
+/reduce-dump {
+%dump-font-dict begin
+begin
+	dump-font-head
+	dump-font-charstrings
+	dump-font-sfnts
+	dump-font-foot
+end
+%end
+} def
+
+% font [ glyphnames ] reduce-font -
+/reduce-font {
+	reduce-prepare
+	reduce-dump
+} def
+
+currentdict end /ProcSet defineresource pop

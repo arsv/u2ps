@@ -1,0 +1,21 @@
+%!PS-Adobe-3.0 Resource-FontSet
+/LiberationMono {
+	<<
+		/notdef { /notdef findfont }
+		/base	{ /LiberationMono findfont 1 1 1.2 div scalefontxy }
+	>> [
+		[ 16#0000 16#303F /base ]
+	] makefontset
+
+	/italic <<
+		/oblique { /LiberationMono-Italic findfont 1 1 1.2 div scalefontxy }
+	>> [
+		[ 16#0000 16#303F /oblique ]
+	] addfontsetvariant
+
+	/bold <<
+		/bold	{ /LiberationMono-Bold findfont 1 1 1.2 div scalefontxy }
+	>> [
+		[ 16#0000 16#303F /bold ]
+	] addfontsetvariant
+} /FontSet defineresource pop

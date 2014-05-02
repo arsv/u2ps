@@ -1,0 +1,111 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% (incomplete) postscript implementation of perlish unpack
+% function. 
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/unpack 10 dict begin
+/reduce.bstr /ProcSet findresource { def } forall
+
+% All r* (read) routines will signalerror is reading fails
+
+% count -> run-count bytes-per-run { decoding-proc }
+% decoding-proc: (string) offset -> anything-but-marks
+/unpack-keys <<
+	/x { 1 exch null }
+	/n { 2 { get_n } }
+	/i { 2 { get_i } }
+	/N { 4 { get_N } }
+	/F { 4 { get_F } }
+	/a { 1 exch { 0 getinterval } dup 0 3 index put }
+>> def
+
+% src-file [ pattern ] -> values
+/runpack {
+	1 index type /filetype ne { /runpack/typecheck signalerror } if
+	dup type /arraytype ne { /runpack/typecheck signalerror } if
+	{
+		dup unpack-keys exch .knownget not {	% src-file p
+			dup type /integertype ne {
+				% unknown format
+				/runpack/unregistered signalerror
+			} {
+				% check if multiplier was already specified
+				1 index type /integertype eq {
+					/runpack/rangecheck signalerror
+				} if
+			} ifelse
+		} {					% src-file proc
+			exch pop
+			1 index type /integertype ne { 1 exch } if
+							% src-file c proc
+			exec				% src-file rc bpr dp
+			dup null eq {
+				pop mul			% src-file ap0
+				1 index fileposition add % src-file ap
+				1 index exch setfileposition
+			} {					% src-file rc bpr dp
+				2 index 2 index mul string	% src-file rc bpr dp buf
+				4 index exch readstring not {
+					% read failed
+					/runpack/ioerror signalerror
+				} if			% src-file rc bpr dp data
+				0 5 4 roll		% sf bpr dp data 0 rc
+				{			% sf bpr dp data 0
+					mark
+					2 index 2 index	% sf bpr dp data p [ data p
+					5 index exec	% sf bpr dp data p [ ...
+					counttomark dup
+					6 add exch roll	% ... sf bpr dp data p [
+					pop 3 index add	% ... sf bpr dp data p+bpr
+				} repeat
+				4 { pop } repeat
+			} ifelse
+		} ifelse
+	} forall
+	type /integertype eq { pop } if
+} def
+
+% file n /type -> [ values ]
+/rarray {
+	2 index type /filetype ne { /rarray/typecheck signalerror } if
+	1 index type /integertype ne { /rarray/typecheck signalerror } if
+	unpack-keys exch .knownget not {
+		/rarray/unregistered signalerror
+	} {
+		exec				% file rc bpr dp
+		mark 5 1 roll			% [ file rc bpr dp
+		3 2 roll mark exch {		% [ file bpr dp [
+			3 index 3 index string readstring not {
+				/rarray/ioerror signalerror
+			} if
+						% [ file bpr dp [ data
+			0 3 index exec
+			counttomark dup 4 add exch roll
+		} repeat pop pop pop pop
+		counttomark array astore exch pop
+	} ifelse
+} def
+
+% file len -> [strings]
+% read pascal strings array
+/rpsa {
+	1 index type /filetype ne { /rpsa/typecheck signalerror } if
+	dup type /integertype ne { /rpsa/typecheck signalerror } if
+	mark 3 1 roll {					% [ file len
+		dup 1 le { exit } if
+		1 index read not {
+			/rpsa/ioerror signalerror
+		} if					% [ file len sl
+		dup 0 le { pop exit } if
+		string 2 index exch readstring not {
+			/rpse/ioerror signalerror
+		} if					% [ file len string
+		3 1 roll 2 index length 1 add sub	% [ ... file len
+	} loop pop pop
+	counttomark array astore exch pop
+} def
+
+currentdict end /ProcSet defineresource pop

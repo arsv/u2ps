@@ -1,0 +1,49 @@
+%# Note: this file includes special markup for u2ps to cut unused sections.
+%#
+/fontset/ProcSet findresource { def } forall
+/uniterm/ProcSet findresource { def } forall
+
+/fsize $fsize def
+/asize $asize def
+/lsize $lsize def					%?lnum
+
+/em fsize 2 div def		% terminal grid x-step
+/ex fsize def			% terminal grid y-step
+/tabstop $ts def
+
+/term-fset /$fset findfontset fsize scalefontset def
+/head-fset /$hfset findfontset asize scalefontset def	%?headers
+/lnum-font /$lfont findfont lsize scalefont def		%?lnum
+
+% page size
+/paper-w $pw def
+/paper-h $ph def
+/margin-l $ml def
+/margin-r $mr def
+/margin-t $mt def
+/margin-b $mb def
+% terminal output area corners: x left/middle/right, y top/bottom
+/term-xl margin-l def
+/term-yb margin-b def
+/term-xr paper-w margin-r sub def
+/term-yt paper-h margin-t sub def
+/term-xm term-xl term-xr add 2 div def		% midpoint
+% starting position on the page (line 1 col 1 baseline)
+/term-ox term-xl def
+/term-oy term-yt fsize .8 mul sub def
+% header/footer baselines
+% font depth is assumed to be .2ex
+/headsep fsize def					%?headers
+/term-yh term-yt headsep add asize .2 mul add def	%?headers
+/term-yf term-yb headsep sub asize .8 mul sub def	%?headers
+
+/wrap-marks $wrapmark def				%?wrap
+
+% base terminal colors
+
+/color-fg $fg def
+/color-bg $bg def
+/color-hb $hb def
+/color-ln $hb def
+
+<< /PageSize [ $bw $bh ] >> setpagedevice

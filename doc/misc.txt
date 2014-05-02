@@ -1,0 +1,46 @@
+Page initialization
+~~~~~~~~~~~~~~~~~~~
+It makes sense to lump all initialization into a procedure and call it
+at the start of each page. Like this:
+
+    /page-init {
+            % set landscape
+            % fill background
+            % make headers
+            % nf ng fR
+    } def
+
+or maybe even
+
+    << /BeginPage { ... } >> setpagedevice
+
+Well, no.  Upon a closer inspection, repeating short commands like
+
+	nf ng bk Hl
+
+and so on at the start of each page works just as well.
+
+Simplier code, negligible size increase, and what's important, input-independent
+procedures can now be moved to a procset and handled using common procset rules.
+
+And in addition to that, there's a lot of things that aren't page-independent.
+Headings, colors, fset variant and so on.
+
+
+Output file size: u2ps vs a2ps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The files from a2ps are inevitably smaller than those from u2ps
+due to large(r) procsets u2ps puts in prologue, and embedded fonts.
+
+u2ps utf8-handling procsets are quite large, and nothing can be done
+about that at this moment. This is the price to pay for utf8.
+For reference, a simple paragraph in English results in ~15k output from a2ps
+vs ~25k output from u2ps, using non-embedded Courier font.
+
+Most of the difference, however, comes from embedded fonts in u2ps output.
+a2ps never embeds anything. This can be disabled for u2ps as well.
+
+That being said, for non-trivial unicode files font embedding is pretty much
+a necessity. Very little is guaranteed about standard PostScript fonts
+coverage outside of Latin1. So chances are a file that looked well in gs 
+will suddenly come out with missing-glyph marks from a printer.

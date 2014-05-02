@@ -1,0 +1,157 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Font dumping utilites
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/reduce.dump 10 dict begin
+
+/printf/ProcSet findresource { def } forall
+
+% font key found? font false
+% font key found? font key val true
+/f? {
+	1 index 1 index .knownget { true } { pop } ifelse
+} def
+
+% font key get! font false
+% font key get! font key val true
+/g! {
+	1 index 1 index .knownget { true } {
+		(Warning: required key %l not found\n) printf
+	} ifelse
+} def
+
+/nl { (\n) print } def
+
+% value print-value -
+/pv { {
+	dup type /arraytype eq {
+		([ ) print
+		{ (%l ) printf } forall
+		(]) print
+		exit
+	} if
+	(%l) rprintf
+	exit
+} loop } def
+
+% key value print-key-value -
+/pkv {
+	exch (%l ) printf pv ( def) print nl
+} def
+
+% key value print-stringarray -
+/psa {
+	exch (%l [\n) printf
+	{ phs nl } forall
+	(] def\n) print
+} def
+
+/W 32 def
+/M 65535 def
+
+% string print-hex-string -
+/phs {
+	(<) print
+	0 W 2 index length 1 sub {		% str i
+		dup 0 ne { (\n ) print } if	% str i
+		1 index length			% str i len
+		1 index W add			% str i len i+W
+		sub				% str i len-i-W
+		dup 0 ge {			% str i W
+			pop W
+		} {
+			W add			% str i len-i
+		} ifelse
+						% str i len-i
+		2 index 3 1 roll getinterval	% str substr
+		(%H) printf
+	} for pop
+	(>) print
+} def
+
+% (string) start-position -> end-position
+/phsa-line {
+5 dict begin
+	/p exch def
+	/s exch def
+	/l s length def
+
+	%p l (%i len %i phsa-line\n) rprintf
+
+	l W p sub le {
+		s (%H) printf
+		p l add
+	} {
+		s 0 W p sub 
+		dup 0 gt { getinterval (%H) printf } { pop pop pop } ifelse
+		0
+		W p sub W l 1 sub {
+			/i exch def pop
+			(\n ) print
+			i W add l le {
+				s i W getinterval
+				W
+			} {
+				s i l i sub getinterval
+				l i sub
+			} ifelse
+			exch (%H) printf
+		} for
+	} ifelse
+end
+} def
+
+/phsa {
+	(<) print
+	0 0 3 2 roll {			% L P s
+		dup length		% L P s l
+		3 index			% L P s l L
+		1 index add M gt {	% L P s l
+			(>\n<) print
+			4 1 roll
+			exch pop
+			exch pop
+			0 exch		% l 0 s
+		} {
+			4 3 roll add	% P s L+l
+			3 1 roll	% L+l P s
+		} ifelse
+
+		exch phsa-line
+	} forall pop pop
+	(>) print
+} def
+
+% key hash print-font-info -
+/pfi {
+	exch (%l <<\n) printf
+	{
+		(\t) print
+		exch
+		dup length 1 add 8 lt { (\t\t) } { (\t) } ifelse
+		(%l%s) rprintf
+		pv nl
+	} forall
+	(>> def\n) printf
+} def
+
+% key array print-font-encoding -
+/pfe {
+	exch (%l [\n) printf
+	0 exch {
+		1 index 4 mod 0 eq { (\t) print } if
+		dup (%l) printf
+		1 index 4 mod 3 eq {
+			pop nl
+		} {
+			length 1 add 8 lt { (\t\t) } { (\t) } ifelse print
+		} ifelse
+		1 add
+	} forall pop
+	(] def\n) print
+} def
+
+currentdict end /ProcSet defineresource pop

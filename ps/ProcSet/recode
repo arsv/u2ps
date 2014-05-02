@@ -1,0 +1,44 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% UCS2 to UTF8 converter, use in t2pt42 to decode font header info
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/recode 10 dict begin
+
+/ucs2be-to-utf8 {
+	mark exch false exch {
+		exch not {
+			% 1st byte
+			8 bitshift true
+		} {
+			% 2nd byte
+			% note: ucs2 can produce only 1, 2 or 3 byte utf8 sequences
+			or {
+				dup 16#007F le { exit } if
+				dup 16#07FF le {
+					dup -6 bitshift
+					2#00011111 and 2#11000000 or exch
+					2#00111111 and 2#10000000 or
+					exit
+				} if
+				dup -12 bitshift
+				2#00001111 and 2#11100000 or exch
+				dup  -6 bitshift
+				2#00111111 and 2#10000000 or exch
+				2#00111111 and 2#10000000 or
+				exit
+			} loop
+			false
+		} ifelse
+	} forall pop
+	counttomark dup string exch
+	1 sub 0 exch 1 exch {			% ... string i
+		1 index length 1 sub exch sub	% ... string p
+		1 index exch			% ... string string p
+		4 3 roll put
+	} for exch pop
+} def
+
+currentdict end /ProcSet defineresource pop

@@ -1,0 +1,7 @@
+%!PS-Adobe-3.0 Resource-Category
+currentglobal
+	true setglobal
+	/Generic /Category findresource
+	dup length dict copy
+	/FontSet exch /Category defineresource pop
+setglobal

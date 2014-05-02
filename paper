@@ -1,0 +1,29 @@
+# Paper size description
+# Dimentions are in long points (= 1/72")
+# Optional fouth column is the default margin value for given paper
+
+# name		w	h	margins
+a0		2384	3370	100
+a1		1684	2384	90
+a2		1190	1684	80
+a3		842	1191	70
+a4		595	842	55:57.5
+a5		420	595	50
+a6		298	420	15
+a7		210	298	10
+
+b0		2835	4008
+b1		2004	2835
+b2		1417	2004
+b3		1001	1427
+b4		709	1001
+b5		499	709
+b6		354	499
+
+c0		1837	578
+c1		 919	649
+c2		 459	323
+
+letter		612	792
+ledger		792	1224
+executive	522	756

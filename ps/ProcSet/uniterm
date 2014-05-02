@@ -1,0 +1,240 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% "Unicode terminal emulator"
+% Routines to position fixed-width characters on a page,
+% color and attributes control.
+%
+% Operates with global state variables ux, ex, em and term-*
+% U8.* must be loaded before calling term-ushow*
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+10 dict begin
+
+% landscape
+/la { paper-h 0 translate 90 rotate } def
+
+% terminal reset
+/tr {
+	term-fset setfontset
+	term-ox term-oy moveto
+} def
+
+% Move-shift-show, for headings
+% (s) x y shift -> -
+% no point in doing save/restore here, setfontset will break things
+% which tr will be fixing later anyway
+/mss {
+	head-fset setfontset color-fg sethexcolor
+	dup 0 gt {
+		3 index ustringwidth pop mul
+		exch 3 1 roll sub exch
+	} {
+		pop
+	} ifelse
+	moveto ushow
+} def
+
+% Header left/center/right
+/Hl { term-xl term-yh 0. mss } def
+/Hc { term-xm term-yh .5 mss } def
+/Hr { term-xr term-yh 1. mss } def
+% Footer left/center/right
+/Fl { term-xl term-yf 0. mss } def
+/Fc { term-xm term-yf .5 mss } def
+/Fr { term-xr term-yf 1. mss } def
+
+% low color table (taken from rxvt-unicode init.C def_colorName[])
+/colortable [
+    16#000000             % 0: black             (Black)
+    16#cd0000             % 1: red               (Red3)
+    16#00cd00             % 2: green             (Green3)
+    16#cdcd00             % 3: yellow            (Yellow3)
+    16#0000cd             % 4: blue              (Blue3)
+    16#cd00cd             % 5: magenta           (Magenta3)
+    16#00cdcd             % 6: cyan              (Cyan3)
+    16#faebd7             % 7: white             (AntiqueWhite)
+    16#404040             % 8: bright black      (Grey25)
+    16#ff0000             % 1/9: bright red      (Reed)
+    16#00ff00             % 2/10: bright green   (Green)
+    16#ffff00             % 3/11: bright yellow  (Yellow)
+    16#0000ff             % 4/12: bright blue    (Blue)
+    16#ff00ff             % 5/13: bright magenta (Magenta)
+    16#00ffff             % 6/14: bright cyan    (Cyan)
+    16#ffffff             % 7/15: bright white   (White)
+] def
+% color cube steps (same source)
+/colorramp [ 16#00 16#5F 16#87 16#AF 16#D7 16#FF ] def
+% gray ramp
+/grayramp [ 16#08 16#12 16#1c 16#26 16#30 16#3a 16#44 16#4e
+            16#58 16#62 16#6c 16#76 16#80 16#8a 16#94 16#9e
+            16#a8 16#b2 16#bc 16#c6 16#d0 16#da 16#e4 16#ee ] def
+
+% 16#RRGGBB -> -
+/sethexcolor {				% c
+	dup 256 mod 255 div exch	% B c
+	256 idiv			% B c'
+	dup 256 mod 255 div exch	% B G c'
+	256 idiv			% B G c''
+	    256 mod 255 div		% B G R
+	3 1 roll exch setrgbcolor
+} def
+
+% i -> 16#RRGGBB
+/termcolor {
+	256 mod dup 16 lt {
+		% basic color
+		colortable exch get 
+	} { dup 232 ge {
+		% gray ramp
+		232 sub grayramp exch get
+		dup dup 8 bitshift or 8 bitshift or
+	} {
+		% color cube
+		16 sub
+		dup 6 mod colorramp exch get			% i B
+		exch 6 idiv					% B i'
+		dup 6 mod colorramp exch get			% B i' G
+		exch 6 idiv					% B G i''
+		6 mod colorramp exch get	 		% B G R
+		8 bitshift or 8 bitshift or			% 16#RRGGBB
+	} ifelse } ifelse
+} def
+
+% put line number on the left margin
+% line-num l -
+/l {
+gsave
+	color-ln sethexcolor
+	lnum-font setfont
+	asize neg 0 rmoveto
+	10 string cvs dup stringwidth pop neg 0 rmoveto
+	show
+grestore
+} def
+
+% background color (hex), or null to skip background filling
+/gc null def
+% current postscript color is used to store fg color
+
+% Draw string using term-fg and term-bg
+% (string) u -
+/u {
+	gc null ne {
+		gsave
+		currentpoint pop		% (s) x0
+		1 index ushow			% (s) x0
+		currentpoint newpath moveto	% (s) x0
+		gc sethexcolor			% (s) x0
+		0 -0.2 ex mul rmoveto		% (s) x0
+		0 ex rlineto			% (s) x0
+		currentpoint exch pop lineto	% (s)
+		0 ex neg rlineto
+		closepath fill
+		grestore
+	} if
+	ushow
+} def
+
+% end-of-line, finish ul/sl, move onto the next line
+/n {
+	ux null ne dup { ue } if
+	sx null ne dup { se } if
+	currentpoint exch pop ex sub term-ox exch moveto
+	{ sl } if
+	{ ul } if
+} def
+
+% end-of-line, with a wrap mark
+/w {
+	currentpoint n
+
+	wrap-marks {
+	gsave
+		exch pop term-xr exch moveto
+		asize 0 rmoveto
+		.5 setlinewidth
+		color-ln sethexcolor
+		asize .25 mul 0 rlineto
+		0 asize .5 mul rlineto stroke
+	grestore
+	} {
+		pop pop
+	} ifelse
+} def
+
+% set font regular
+/fR { /regular setvariant } def
+/fB { /bold setvariant } def
+/fI { /italic setvariant } def
+/fO { /bolditalic setvariant } def
+
+% underlining
+/ux null def
+/ul { currentpoint pop /ux exch def } def
+/ue { ux null ne {
+	gsave
+	ex 50 div setlinewidth
+	currentpoint ex 8 div sub
+		dup ux exch moveto lineto stroke
+	grestore
+	/ux null def
+} if } def
+
+% strike-out
+/sx null def
+/sl { currentpoint pop /sx exch def } def
+/se { sx null ne {
+	gsave
+	ex 50 div setlinewidth
+	currentpoint ex .25 mul add
+		dup sx exch moveto lineto stroke
+	grestore
+	/sx null def
+} if } def
+
+/rf { color-bg sethexcolor } def
+/vf { color-bg sethexcolor } def
+/hf { color-hb sethexcolor } def
+/nf { color-fg sethexcolor } def 
+
+/vg { /gc color-bg def } def
+/rg { /gc color-fg def } def
+/fg { termcolor sethexcolor } def
+/bg { termcolor /gc exch def } def 
+/ng { /gc null def } def
+
+/cr { currentpoint exch pop term-ox exch moveto } def
+/bs { em neg 0 rmoveto } def
+/cc { currentpoint pop term-ox sub em div round cvi } def
+/t { tabstop dup cc exch mod sub em mul 0 rmoveto } def
+
+/odd {
+	/Hi /Hl load def  /Ho /Hr load def
+	/Fi /Fl load def  /Fo /Fr load def
+	/term-xl margin-l def
+	/term-xr paper-w margin-r sub def
+	/term-xm term-xl term-xr add 2 div def
+	/term-ox term-xl def
+} def
+
+/even {
+	/Hi /Hr load def  /Ho /Hl load def
+	/Fi /Fr load def  /Fo /Fl load def
+	/term-xl margin-r def
+	/term-xr paper-w margin-l sub def
+	/term-ox term-xl def
+} def
+
+% black background
+/bk {
+	color-bg sethexcolor
+	-1 -1 moveto
+	-1 paper-h lineto
+	paper-w paper-h lineto
+	paper-w -1 lineto
+	closepath fill
+} def
+
+currentdict end /uniterm exch /ProcSet defineresource pop

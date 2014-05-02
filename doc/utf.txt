@@ -1,0 +1,39 @@
+Combining characters
+~~~~~~~~~~~~~~~~~~~~
+Handling is completely broken at this moment.
+Type 1 fonts lack relevant data completely, and fontsets can't read TTF tables directly yet.
+
+Current assumption is that showing /a /acutecomb /b yields something resembling áb.
+This requires combining characters to have zero width and negative coordinates.
+Some fonts do implement this, some don't. FreeMono in particular had this changed somewhere
+between 2006 and 2008, with current versions having negative coordinates but non-zero width.
+
+To handle current FreeMono version, u2ps 0.9 adds a dirty hack, enforcing zero-width
+for glyphs it considers to be combining. It's better than nothing, but do not expect
+good typesetting.
+
+
+tcedilla/tcommaaccent/tcommabelow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For reasons beyond my understanding, proper names for these glyphs in FreeMono are:
+	scedilla ş	scommaaccent ș
+but
+	tcedilla ţ	tcommabelow ț
+This is while tcommaaccent is defined as an alias for tcedilla, a different glyph!
+To make things even more interesting, scommabelow is defined (as an alias for scommaaccent)
+but Scommabelow is not.
+
+Unicode standard lists these characters are "[SsTt] with comma below" "[SsTt] with cedilla".
+In the original Adobe Glyph List it's uniformly /[SsTt]commaaccent, however with
+0x0162, 0x163 for t (cedilla, ţ) and 0x0218, 0x0219 for s (comma below, ș).
+
+I suspect this may be wrong and will probably cause issues with fonts other than FreeMono,
+but at least it works with FreeMono which is the default font for u2ps anyway.
+Nimbus Courier/Times substitutes from gs package lack these glyphs altogether.
+
+In case this has to be fixed on-site, it's all in ps/Unidata/Agl,
+and there is no simple way for changing it on per-font basis short of editing the font atm.
+
+Rerefence:
+ftp://ftp.unicode.org/Public/5.0.0/ucd/UnicodeData.txt
+http://partners.adobe.com/public/developer/en/opentype/glyphlist.txt

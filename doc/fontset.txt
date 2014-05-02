@@ -1,0 +1,122 @@
+On fontsets
+~~~~~~~~~~~
+0. What is it
+1. Why fset is so complicated?
+	1.1 Why all those code ranges?
+	1.2 Why fsetchars/fsetfcode?
+	1.3 Why fset variants?
+	1.4 Why not several fsets?
+2. What about composite/CID fonts?
+	2.1 Font loading
+	2.2 Composite fonts and UTF8
+	2.3 Composite fonts and nontrivial rendering
+	2.4 Composite fonts and upper table
+
+
+0. What is it
+~~~~~~~~~~~~~
+Fontsets is what u2ps uses instead of regular postscript fonts.
+In PostScript, fonts are generally limited to 256-character encoding.
+To render full Unicode range, an additional structure is implemented
+atop of fonts.
+
+Basically fontset is a composite font, a set of regular PostScript fonts
+each providing some character sub-ranges.
+
+All fontset-related code resides in ps/ProcSet/fontset.
+The code is self-contained and can be used outside of u2ps.
+(but you'll probably need psfrem still).
+
+
+
+1. Why fset is sooo complicated?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The idea is that fset should perform well in simple situations,
+making font-to-fset transition smooth. In other words, printing "abc"
+with fset should not be much more resource-intensive than doing it
+with regular font, even when fset defines whole significant part
+of Unicode range.
+
+
+1.1. Why all those code ranges?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+To avoid loading fonts guaranteed not to contain requested character.
+
+Common approach, used in urxvt and in other places as well, is to keep
+a simple list of fonts, and do sequential lookups each time a character is requested.
+
+This works well if loading a font, or at least font character table, is cheap.
+In Postscript, it is not. Fonts are always loaded whole, sometimes
+with significant effort like on-the-fly TTF-to-Type42 conversion.
+With a simple list looksups, a request for a character missing from all the fonts
+in fset would load all those fonts.
+
+Code ranges allow skipping fonts without loading them.
+
+
+1.2. Why fsetchars/fsetfcode?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Performance considerations. Fset expects font to have standard
+postscript glyphnames, but needs their unicode values internally.
+Convertion is costy, so results are cached.
+
+
+1.3. Why fset variants?
+~~~~~~~~~~~~~~~~~~~~~~~
+Again, performance cosideration. Regular/bold/italic distinction usually
+only matters for basic European scripts. Variants allow keeping a single
+fset, thus a single copy of ranges, font instances and cached tables
+for (supposedly large) non-European parts of fset.
+
+
+1.4. Can't this all be solved by having two fsets, one with 
+     large fonts (e.g. Kochi-Mincho) and one without?
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Simple and extremly bad solution which ignores basic ideas of
+unicode. The user should not have to think what scripts are going
+to be used.
+
+
+2. What about composite/CID fonts?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Any level 2+ Postscript interpreter provides built-in support for
+Type 0 fonts aka composite fonts. Type 0 fonts were intended to solve
+the same problem as fsets, superficially resemble fsets, and work
+much faster than fsets.
+
+The problem is, there is always something slightly, or not-so-slightly,
+wrong with them, and nothing can be done about that.
+
+
+2.1. Font loadings
+~~~~~~~~~~~~~~~~~~
+Composite fonts use the simplest way to load descendant fonts, see
+1.1 here. Composite fonts were originally designed for CJK fonts
+in mostly-CJK contexts, so loading the whole thing was inevitable anyway.
+Prehaps that's the reason they still are used mainly for CJK fonts. Pity.
+
+
+2.2. Composite fonts and UTF8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Nope. No support at all.
+
+All you can get from it is codepage switching, or perhaps usc2,
+despite all that seemingly complicated decoding setup.
+
+Of course, utf8->usc2 converter is quite simple thing, but it's
+another layer above built-in functionality, and there are further limitations
+which would make converter not that simple at all.
+
+
+2.3. Composite fonts and nontrivial rendering
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Right-to-left, ligatures etc. Composite fonts just ignore all this
+possibilites. Preprocessing could solve the problem, but the need
+for preprocessing makes the use of Type 0 font questionable in
+the first place.
+
+
+2.4. Composite fonts and the upper part of table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+No glyphs above 0xFFFF in Type 0 fonts.
+This seems to be really tough, as far as I understand nothing can be done here.

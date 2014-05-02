@@ -1,0 +1,65 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Binary string operation
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/reduce.bstr 10 dict begin
+
+% str i get_N num
+/get_N {
+	1 index 1 index       get 24 bitshift
+	2 index 2 index 1 add get 16 bitshift or
+	2 index 2 index 2 add get  8 bitshift or
+	2 index 2 index 3 add get or
+	3 1 roll pop pop
+} def
+
+% str i get_n num
+% unsigned 16-bit integer
+/get_n {
+	1 index 1 index get 8 bitshift
+	2 index 2 index 1 add get or
+	3 1 roll pop pop
+} def
+
+% str i get_i num
+% signed 16-bit integer
+/get_i {
+	get_n dup 16#8000 ge { 16#FFFF0000 or } if
+} def
+
+% str i get_F num
+/get_F {
+	1 index 1 index get_n 3 1 roll 2 add get_n
+	65536 div add
+} def
+
+% str i get_a4 (abcd)
+/get_a4 {
+	4 getinterval	
+} def
+
+% dst i int put_N -
+/put_N {
+	dup              16#FF and 3 index 3 index 3 add 3 2 roll put
+	dup  -8 bitshift 16#FF and 3 index 3 index 2 add 3 2 roll put
+	dup -16 bitshift 16#FF and 3 index 3 index 1 add 3 2 roll put
+	dup -24 bitshift 16#FF and 3 index 3 index       3 2 roll put
+	pop pop pop
+} def
+
+% dst i int put_n -
+/put_n {
+	dup             16#FF and 3 index 3 index 1 add 3 2 roll put
+	dup -8 bitshift 16#FF and 3 index 3 index       3 2 roll put
+	pop pop pop
+} def
+
+% dst i str put_a4 -
+/put_a4 {
+	putinterval
+} def
+
+currentdict end /ProcSet defineresource pop

@@ -1,0 +1,547 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+% PostScript implementation of printf family functions
+% Copyright (C) 2008  Alex Suykov <alex.suykov@gmail.com>
+% 
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either version 2 of the License, or
+% (at your option) any later version.
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software Foundation,
+% Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+
+% convertion sequence format:
+%	% [index] [flags] [width] [.precision] convertion-specifier
+%
+% supported flags:
+%	-	left-align
+%	0	zero-pad numbers
+%	(space)	print space before positive numbers
+%	+	print explicit + before positive numbers
+%	#	print type/base prefix
+%
+% supported convertions:
+%	char	type	description
+%	a	any	cvs is used to convert argument to string
+%			Note: has internal length limitation, 1024 bytes or
+%			something like that
+%	c	int	character with specified code; flags have no effect
+%	s	string	literal string
+%	b	int	binary; unsigned; prefix is "0b"
+%	f	float	floating-point number;
+%			Note: due to language limitations, this convertion
+%			in uncontrollable. All flags except width are ignored.
+%			Usually yields +00.00 form, but for large numbers will
+%			automatically switch to +0.00e+0 form.
+%	i	int	decimal integer; signed
+%	o	int	octal integer; unsigned; prefix is "0"
+%	x	int	hexadecimal, lower-case; unsigned; prefix is "0x"
+%	X	int	hexadecimal, upper-case; unsigned; prefix is "0x"
+%	r	int	arbitrary radix integer; unsigned; use precision field
+%			to specify radix: %.2r for binary, %.10r for decimal etc.
+%			prefix is "radix#"
+%
+% Note: variable width (%*s) is NOT supported. Also, precision field never sets
+% actually sets precision.
+%
+% (s)printf uses normal postfix argument order:
+%	(world) (cruel) (Goodbye) (%s, %s %s!) printf
+% r(s)printf processes format sequences backwards, allowing more
+% intuitive
+%	(Goodbye) (cruel) (world) (%s, %s %s!) rprintf
+%
+% Arguments can be addressed explicitly, using %N$a or %N!a form.
+% Indexes are in postfix order even for r(s)printf:
+%	... 5 4 3 2 1 (format) printf
+% Printf pops all arguments up to last addressed without !.
+% 	B A (%s %s) printf -
+%	B A (%2$s) printf -
+%	B A (%2!s) printf B A
+%	C B A (%3!s %s) printf B A
+% however, stack state is not changed during format processing:
+%	C B A (%2$a %2$a %2$a) printf
+% will print B three times.
+%%EndComments
+/printf 10 dict begin
+% --[ printf dict ]-------------------------------------------------------------
+/printf-dict 20 dict begin
+
+% Helper string functions
+
+% Check whether given char is found in string
+% 	code (string) in {true|false}
+/in {
+	false 3 1 roll {			% false code (string)
+		1 index eq {
+			pop pop true dup exit
+		} if
+	} forall
+	pop
+} def
+
+/is-1digit { dup 16#31 ge exch 16#39 le and } def
+/is-0digit { dup 16#30 ge exch 16#39 le and } def
+/to-name { 1 string dup 0 4 3 roll put cvn } def
+/to-1string { 1 string dup 0 4 3 roll put } def
+
+% n (string) xstring (stringstring....string)
+/xstring {
+	dup length 2 index mul string		% n (s) (....)
+	0 2 index length dup			% n (s) (....) 0 len len
+	5 index 1 sub mul			% n (s) (....) 0 len (n-1)*len
+	{
+		%dup ==
+		1 index exch			% n (s) (....) (....) i
+		3 index 			% n (s) (....) (....) i (s)
+		putinterval
+	} for
+	3 1 roll pop pop
+} def
+
+% (AbCd01) strtolower (abcd01)
+/strtolower {
+	dup length 1 sub 0 1 3 2 roll {
+		1 index 1 index get		% str | i s[i]
+		dup 16#41 ge exch dup 16#5A le	% str | i <? s[i] >?
+		exch 3 1 roll and {		% str | i s[i]
+			16#20 add
+			2 index 3 1 roll put
+		} { pop pop } ifelse
+	} for
+} def
+
+% string strdup another-string
+/strdup {
+	dup length string copy
+} def
+
+% FA states
+%	chr-code state-* /new-state-name
+%	mark ... chr-code state-* mark ... smth /new-state-name
+% state*s are called from a loop, so they must call exit to return.
+% chr-code == null means end of string.
+
+% state-* helpers. To be called in initial state condition (ISC) only,
+% that is with chr-code rigth on the top of stack
+% (anything state-* pushed must be poped by this time)
+% 	/new-state-name follow -|
+/follow { exch pop exit } def
+%	(error message) error -|
+/error { print ( near position ) print p == /state-init follow } def
+%	value deliver -
+/deliver { exch } def
+
+% Side state control.
+%	- *-begin -
+%	ISC *-end ISC
+/chunk-start { /text-start p def } def
+/chunk-end {
+	str text-start p text-start sub
+	getinterval deliver
+} def
+
+/num-start { /m-num-start p def } def
+/num-end {
+	str m-num-start p m-num-start sub
+	getinterval cvi
+} def
+
+/fmt-start { /flags 5 dict def } def
+/fmt-end { flags deliver /flags null def } def
+%	/key val fmt-def -
+/fmt-def { flags 3 1 roll put } def
+
+% States
+/state-init {
+	dup null eq { null follow } if
+	dup 16#25 eq { /state-perc follow } if
+	chunk-start /state-text follow
+} def
+
+/state-text {
+	dup null eq { chunk-end null follow } if
+	dup 16#25 eq { chunk-end /state-perc follow } if
+	/state-text follow
+} def
+
+/state-perc {
+	dup null eq { (%) deliver null follow } if
+	dup 16#25 eq { (%) deliver /state-init follow } if
+	fmt-start
+	dup is-1digit { num-start /state-num-1 follow } if
+	state-perc-flags
+} def
+
+/state-perc-flags {
+	dup (0) in { /zero true fmt-def /state-perc-flags follow } if
+	dup (+) in { /plus true fmt-def /state-perc-flags follow } if
+	dup (#) in { /mark true fmt-def /state-perc-flags follow } if
+	dup (-) in { /left true fmt-def /state-perc-flags follow } if
+	dup ( ) in { /spsc true fmt-def /state-perc-flags follow } if
+	dup (!) in { /keep true fmt-def /state-perc-flags follow } if
+	dup is-1digit { num-start /state-num-2 follow } if
+	dup (.) in { /state-fwidth follow } if
+	state-formatter
+} def
+
+/state-num-1 {
+	dup is-0digit { /state-num-1 follow } if
+	dup ($!) in { 
+		num-end /argi exch fmt-def
+		dup (!) in { /keep true fmt-def } if
+		/state-perc-flags follow
+	} if
+	dup (.) in { num-end /width exch fmt-def /state-fwidth follow } if
+	num-end /width exch fmt-def
+	state-formatter
+} def
+
+/state-num-2 {
+	dup is-0digit { /state-num-2 follow } if
+	dup (.) in { num-end /width exch fmt-def /state-fwidth follow } if
+	num-end /width exch fmt-def
+	state-formatter
+} def
+
+/state-fwidth {
+	dup is-0digit { num-start /state-num-3 follow } if
+	state-formatter
+} def
+
+/state-num-3 {
+	dup is-0digit { /state-num-3 follow } if
+	num-end /fwidth exch fmt-def
+	state-formatter
+} def
+
+/state-formatter {
+	dup (abcfHilorsSxX) in {
+		dup to-name /format exch fmt-def fmt-end
+		/state-init follow
+	} if
+	(format character expected) error
+} def
+
+% assumes /str is defined in currentdict, which is in turn writable
+%	- parse-format-string [(text) <<format>> (text)]
+/parse-format-string {
+	/p 0 def
+
+	mark
+
+	/state-init str {
+		%p =string cvs print ( ) print 1 index =string cvs print ( input ) print dup ==
+		exch load loop
+		/p p 1 add def
+	} forall
+	null exch load loop
+	dup null eq not {
+		(EOS in not-null ) print ==
+	} { pop } ifelse
+
+	counttomark array astore exch pop
+} def
+
+% Values substitution
+
+% assumes currentdict to be format dict
+% 	 /key defval or-default value
+/or-default {
+	exch currentdict exch .knownget { exch pop } if
+} def
+
+% replace fmt-describing dicts with their respective values
+% note: no stack modification is done in process, as this would
+% make %n$ notation nearly incomprehensible. Instead, we keep
+% index of farthermost argument accessed and pop them all at once
+% in the end.
+%	argn ... arg0 [ format ] subst-values [ result ]
+% assumes scratch dictionary on the stack
+/subst-values {
+	/argp 1 def
+	/maxi 0 def
+	/fmt exch def
+	
+	% for reversed arguments, process placeholders backwards
+	reverse not {
+		0 1 fmt length 1 sub 
+	} {
+		fmt length 1 sub -1 0
+	} ifelse {
+		/i exch def
+		fmt i get
+		dup type /dicttype eq {
+			begin make-value end		% ar..gs val
+			fmt i 3 2 roll put
+		} { pop } ifelse
+	} for
+
+	maxi { pop } repeat
+	fmt
+} def
+
+% called from within subst-values and uses its variables
+% 	ar..gs make-value ar..gs val
+% modifies argp and maxi if necessary
+/make-value {
+	currentdict /argi .knownget not {
+		argp dup 1 add /argp exch store
+	} if						% ar..gs | argp
+	dup index exch					% ar..gs | val argp
+	/keep false or-default { pop } {		% ar..gs | val argp
+		dup maxi gt not { pop } {
+			/maxi exch store
+		} ifelse
+	} ifelse					% ar..gs | val
+
+	currentdict /format get
+	formatters exch .knownget not {
+		(format character undefined in internal dictionary\n) print
+		pop ()
+	} {
+		exec
+	} ifelse					% ar..gs | formatted-val
+
+	currentdict /width .knownget {
+		1 index length sub			% ar..gs | fv w-fw
+		dup 0 gt not { pop } {
+			( ) xstring
+			/left false or-default not { exch } if
+			concatstrings
+		} ifelse
+	} if
+} def
+
+% [ (a) (b) (c) ] join-strings (abc)
+/join-strings {
+	dup 0 exch { length add } forall
+	string					% [ ] dst
+	exch 0 exch {				% dst p str
+		2 index 2 index 2 index
+		putinterval			% dst p str
+		length add
+	} forall pop
+} def
+
+/print-strings {
+	{ print } forall
+} def
+
+% Formatters / format helpers
+
+/formatters <<
+	/l { fmt-lit }
+	/i { fmt-int }
+	/s { fmt-str }
+	/f { =string cvs strdup }
+	/H { fmt-str-hex }
+	/S { fmt-str-lit }
+	/c { to-1string }
+	/x { (0x) exch 16 20 fmt-base strtolower }
+	/X { (0x) exch 16 20 fmt-base }
+	/o { (0) exch 8 20 fmt-base }
+	/b { (0b) exch 2 35 fmt-base }
+	/r { fmt-base-user }
+>> def
+
+% mark value base max-length fmt-base string
+/fmt-base {
+	string cvrs
+	/zero false or-default currentdict /width known and {
+		dup length
+		width exch sub
+		/mark false or-default { 2 index length sub } if
+		dup 0 gt not { pop } {
+			(0) xstring exch concatstrings
+		} ifelse
+	} if
+	/mark false or-default { concatstrings } { exch pop } ifelse
+} def
+
+/fmt-base-user {
+	/fwidth 16 or-default
+	dup 5 string cvs (#) concatstrings 3 1 roll
+	36
+	fmt-base
+} def
+
+/fmt-int {
+	dup 20 string cvs
+	exch {						% str num
+		dup 0 lt { true exch exit } if
+		dup 0 gt /plus false or-default and {
+			(+) exch exit 
+		} if
+		dup 0 ge /spsc false or-default and {
+			( ) exch exit
+		} if
+		null exch exit
+	} loop pop exch					% pref str
+
+	/zero false or-default currentdict /width known and {
+		dup length
+		width exch sub					% pref str w-l
+		2 index type /stringtype eq { 1 sub } if	% pref str w-l-1
+		dup 0 gt not { pop } {
+			2 index true eq {
+				exch				% pref w-l str
+				% tear leading minus off and make it a prefix
+				dup length 1 sub
+				1 exch getinterval		% pref w-l str
+				3 2 roll pop (-) 3 1 roll	% (-) w-l str
+				exch				% (-) str w-l
+			} if
+			(0) xstring exch concatstrings
+		} ifelse
+	} if
+
+	1 index type /stringtype eq { concatstrings } { exch pop } ifelse
+} def
+
+/fmt-str {
+	dup type /stringtype ne { =string cvs strdup } if
+	currentdict /width known {
+		dup length width exch sub
+		dup 0 le { pop } {
+			( ) xstring
+			/left false or-default not { exch } if
+			concatstrings
+		} ifelse
+	} if
+} def
+
+/fmt-str-hex {
+	dup length 2 mul string		% src dst
+	exch 0 exch {			% dst p c
+		16 2 string cvrs	% dst p cs
+		2 index exch		% dst p dst cs
+		2 index exch		% dst p dst p cs
+		dup length 2 lt {
+			2 index 2 index (0) putinterval
+			exch 1 add exch
+		} if
+		putinterval		% dst p
+		2 add
+	} forall pop
+	/mark false or-default { 
+		dup length 2 add string exch
+		1 index 1 3 2 roll putinterval
+		dup 0 (<) putinterval
+		dup dup length 1 sub (>) putinterval
+	} if
+} def
+
+% A <= x <= B ?
+% x A B in-range true|false
+/in-range {
+	2 index ge
+	3 1 roll ge and
+} def
+
+/fmt-lit {
+	dup type {
+		dup /nulltype eq { pop pop (null) exit } if
+		dup /integertype eq { pop fmt-int exit } if
+		dup /realtype eq { pop =string cvs exit } if
+		dup /stringtype eq { pop fmt-lit-str exit } if
+		dup /nametype eq { pop fmt-lit-name exit } if
+		dup /operatortype eq { pop
+			=string cvs cvn
+			fmt-lit-name
+			(systemdict ) exch concatstrings
+			( get) concatstrings
+			exit
+		} if
+		dup /arraytype eq { pop pop ([ ]) exit } if
+		dup /dicttype eq { pop pop (<< >>) exit } if
+		dup /booleantype eq { pop { (true) } { (false) } ifelse exit } if
+		pop pop (undef) exit
+	} loop
+} def
+
+/fmt-lit-str {
+	%(stack1:\n) print stack (end\n) print
+	dup 0 exch { {
+		dup  9 eq { pop 1 add exit } if
+		dup 10 eq { pop 1 add exit } if
+		dup 32 lt { pop 3 add exit } if
+		dup 128 ge{ pop 3 add exit } if
+		dup 40 eq { pop 1 add exit } if
+		dup 41 eq { pop 1 add exit } if
+		dup 92 eq { pop 1 add exit } if
+		pop exit
+	} loop } forall
+	1 index length add 2 add
+	string								% src dst
+	%(stack2:\n) print stack (end\n) print
+	exch 1 exch { {		% dst p c
+		dup  9 eq { pop 1 index 1 index (\\t) putinterval 2 add exit } if
+		dup 10 eq { pop 1 index 1 index (\\n) putinterval 2 add exit } if
+		dup 32 lt 1 index 128 ge or {
+			2 index 2 index (\\) putinterval
+			8 3 string cvrs
+			dup length dup 3 ge { pop } {
+				3 exch sub (0) xstring exch concatstrings
+			} ifelse
+			2 index 2 index 1 add 3 2 roll putinterval 4 add exit
+		} if
+		dup 40 eq { pop 1 index 1 index (\\\() putinterval 2 add exit } if
+		dup 41 eq { pop 1 index 1 index (\\\)) putinterval 2 add exit } if
+		dup 92 eq { pop 1 index 1 index (\\\\) putinterval 2 add exit } if
+		2 index 2 index 3 2 roll put 1 add exit
+	} loop } forall
+	pop
+	dup 0 40 put
+	dup dup length 1 sub 41 put
+} def
+
+/fmt-lit-name {
+	dup length string cvs
+	% check whether this can be a valid name
+	dup true exch {
+		false exch {
+			dup 16#30 16#5A in-range { pop pop true exit } if
+			dup 16#61 16#7A in-range { pop pop true exit } if
+			dup (!@#$^&*+-=,.:;'"?_) in { pop pop true exit } if
+			pop exit
+		} loop
+		and
+		dup not { exit } if
+	} forall {
+		% ok, /name will do
+		dup length string cvs (/) exch concatstrings
+	} {
+		% no, apply "(string) cvn" form
+		fmt-lit-str ( cvn) concatstrings
+	} ifelse
+} def
+
+currentdict end readonly def
+% --[ printf dict ]-------------------------------------------------------------
+
+% ... reverse? join-type printf-main
+/printf-main {
+printf-dict begin
+10 dict begin
+	/join-type exch def
+	/reverse exch def
+	/str exch def
+	parse-format-string
+	subst-values
+	join-type load exec
+end
+end
+} def
+
+/printf { false /print-strings printf-main } def
+/sprintf { false /join-strings printf-main } def
+/rprintf { true /print-strings printf-main } def
+/rsprintf { true /join-strings printf-main } def
+
+currentdict end /ProcSet defineresource pop

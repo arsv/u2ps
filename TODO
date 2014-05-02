@@ -1,0 +1,17 @@
+Procset reduction
+~~~~~~~~~~~~~~~~~
+Gather data on the part of uniterm / fontset used, either in u2ps or in psfrem,
+and cut unused parts at psfrem stage.
+
+
+Bidi support
+~~~~~~~~~~~~
+Starting with some idea on how it should work in context of terminal emulation.
+Also, will likely require procset reduction due to being large but largely-unused
+feature.
+
+
+Opentype fonts support
+~~~~~~~~~~~~~~~~~~~~~~
+FreeMono is available in otf format, and otf fonts may smaller
+(but this doesn't apply to FreeMono apparently).

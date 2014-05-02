@@ -1,0 +1,620 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+%%IncludeResource: unidata Agl
+%%EndComments
+% FontSet operations:
+% 	findfontset
+% 	scalefontset
+% 	setfontset
+% 	ushow
+% 	ustringwidth
+
+20 dict begin
+
+% --- public interface - fontsets ----------------------------------------------
+
+/findfontset { 
+	/FontSet findresource exec
+} bind def
+
+% fset f scalefset fset
+/scalefontset {
+exch begin
+	fsetfonts dup {					% f fsetfonts | /name font
+		3 index scalefont
+		3 index 3 1 roll put
+	} forall pop
+	dup fsetscale scale pop
+currentdict end
+} def
+
+/setfontset {
+	/currentfontset exch def
+} def
+
+% /name setvariant -
+/setvariant {
+	fontset.is.multivariant {
+		currentfontset begin
+		dup null eq 1 index variantrange exch known or {
+			/currentvariant exch store
+		} {
+			/currentvariant null store pop
+		} ifelse
+		end
+	} {
+		%(Attempt to change variant on non-mv fset\n) print
+		pop
+	} ifelse
+} def
+
+% setfontset will overwrite this
+/currentfontset { /currentfontset cvx /undefinedresult signalerror } def
+
+
+% --- public interface - ushow -------------------------------------------------
+
+% (utf-8-string) ushow -
+/ushow {
+currentfontset begin
+	deutf { 
+		dup uiscombining {
+			currentpoint 3 2 roll true
+		} {
+			false
+		} ifelse exch
+
+		ushow.char.prepare dup type /integertype eq {
+			{ ( ) show } repeat
+		} {
+			glyphshow
+		} ifelse
+		
+		{ moveto } if
+	} forall
+end
+} def
+
+% (utf-8-string) ustringwidth w 0
+/ustringwidth {
+currentfontset begin
+	0 exch deutf { 
+		ushow.char.prepare dup type /integertype eq {
+			( ) stringwidth pop mul
+		} {
+			.glyphwidth pop
+		} ifelse add
+	} forall 0.0
+end
+} def
+
+
+% --- FontSet structure definition ---------------------------------------------
+
+%	<< fonts >> [ ranges ] -> fset
+/makefontset {
+10 dict begin
+	/fsetrange exch fontset.ranges.appendflag def
+	/fsetfload exch def
+
+	/fsetchars 256 dict def
+	/fsetfonts 20 dict def
+	/fsetfcode 20 dict def
+	
+	/fsetcfont null def
+	/fsetscale matrix def
+currentdict end
+} def
+
+% Add a variant to an mvfset
+%	fset /name << fonts >> [ ranges ] -> fset
+/addfontsetvariant {
+4 3 roll begin
+	fontset.ranges.appendflag
+	currentdict /variantchars known not {
+		/variantchars 5 dict def
+		/variantrange 5 dict def
+		/currentvariant null def
+	} if
+	exch { fsetfload 3 1 roll put } forall		% /name [ ranges ] 
+	1 index exch variantrange 3 1 roll put		% /name
+	variantchars exch 100 dict put
+currentdict end
+} def
+
+% This one is used in fontset definitions
+% font fx fy scalefontxy font
+/scalefontxy {
+	exch matrix scale makefont
+} bind def
+
+% --- private routines ---------------------------------------------------------
+
+% Naming convention:
+%	fset*		key in FontSet structure
+%	fontset.*	private FontSet call
+%	*fontset*	public call
+%	*		not directly related to fontsets
+
+
+% (utf8-string) -> [ codepoint codepoint ... codepoint ]
+%
+% in case of malformed string, codepoint -1 is inserted where
+% parser failed to interpret data.
+/deutf {
+	mark exch 0 exch { {		% expect c
+		% continuation byte
+		dup 2#11000000 and 2#10000000 eq {
+			% check whether we're in the middle
+			% of sequence
+			1 index 0 gt {
+				% ok, add this to the last codepoint
+				2#00111111 and
+				3 2 roll 6 bitshift or
+				exch 1 sub
+			} {
+				% nope, malformed string
+				pop -1 0
+			} ifelse
+			exit
+		} if
+
+		% non-continuation byte while we're in the middle
+		% of sequence
+		1 index 0 ne { pop -1 0 exit } if
+
+		% 0-, 1-, ..., 5-seq. starting bytes
+		dup 2#10000000 and 2#00000000 eq { exch exit } if
+		dup 2#11100000 and 2#11000000 eq { 2#00011111 and exch pop 1 exit } if
+		dup 2#11110000 and 2#11100000 eq { 2#00001111 and exch pop 2 exit } if
+		dup 2#11111000 and 2#11110000 eq { 2#00000111 and exch pop 3 exit } if
+		dup 2#11111100 and 2#11111000 eq { 2#00000011 and exch pop 4 exit } if
+		dup 2#11111110 and 2#11111100 eq { 2#00000001 and exch pop 5 exit } if
+		% ignored code -- should not happen, but anyway
+		pop exit
+	} loop } forall
+	% check for incomplete string
+	0 ne { -1 } if
+	counttomark array astore exch pop
+} def
+
+% Append "loaded" flag to each range
+% There's no need to keep this in resources, so
+% we add it at runtime.
+/fontset.ranges.appendflag {
+	[ exch {
+		dup length 3 ne { pop } {
+			aload pop false 4 array astore
+		} ifelse
+	} forall ]
+} def
+
+/fontset.setspacefont {
+	fsetchars 32 known not { 32 fontset.loadchar } if
+	fsetchars 32 .knownget {
+		aload pop exch pop
+		fsetfonts exch .knownget { setfont } if
+	} {
+		(No font for " "!) error
+	} ifelse
+} def
+
+% /uniABCD -> 16#ABCD
+/fontset.name2code { {
+	dup Agl exch .knownget {
+		exch pop exit
+	} if
+	256 string cvs
+	dup length 3 le {
+		pop null exit
+	} if
+	dup 0 3 getinterval (uni) eq {
+		dup 3 exch length 3 sub getinterval
+		hex2int dup null eq {
+			pop null exit
+		} {
+			exit
+		} ifelse
+	} {
+		pop null exit
+	} ifelse
+} loop } def
+
+/hexdigits 22 dict begin
+	[ 48 49 50 51 52 53 54 55 56 57
+	     65 66 67 68 69 70
+	     97 98 99 100 101 102 ] { true def } forall
+	currentdict end def
+
+% (00FF) hex2int 255
+% (foobar) hex2int false
+/hex2int {
+	dup true exch {
+		hexdigits exch known not {
+			pop false exit
+		} if
+	} forall not {
+		pop null
+	} {
+		(16#) exch concatstrings cvi
+	} ifelse
+} bind def
+
+% ------------------------------------------------------------------------------
+% Everything below assumes that currentfontset is on the top of dict stack
+
+% A <= x <= B ?
+% x A B in-range true|false
+/in-range {
+	2 index ge
+	3 1 roll ge and
+} def
+
+/fontset.is.multivariant {
+	currentfontset /currentvariant known
+	currentfontset /variantchars known and
+	currentfontset /variantrange known and
+} def
+
+
+% Try to load font containing glyph for code
+% 	code loadchar null
+% 	code loadchar [/glyph /font]
+% modifies fsetchars (and possibly fsetfonts, fsetfcode)
+/fontset.loadchar {
+	%(code=%1!i ) printf
+	fontset.is.multivariant not { null } {
+		currentvariant null eq { null } {
+			dup
+			variantrange currentvariant get
+			variantchars currentvariant get
+			fontset.loadchar.or.cached
+		} ifelse
+	} ifelse
+			% code null
+			% code [/glyph /font]
+	dup null ne { exch pop } {
+		pop
+		fsetrange fsetchars 
+		fontset.loadchar.or.cached
+	} ifelse
+
+	% to make dumps clearer
+	/currentrange null def
+	/currentchars null def
+
+	%dup aload pop (font=%l glyph=%l\n) printf
+} def
+
+% 	code ranges chars -> null
+% 	code ranges chars -> [/glyph /font]
+/fontset.loadchar.or.cached {
+	/currentchars exch def
+	/currentrange exch def
+
+	currentchars 1 index .knownget {
+		exch pop
+	} {
+		fontset.loadchar.current	
+	} ifelse
+} def
+
+% This does actual fontset.loadchar work, operating on
+% currentrange and currentchars
+%	 code -> null
+%	 code -> [/glyph /font]
+/fontset.loadchar.current {
+	null exch
+	currentrange { dup 3 get { pop } {
+		1 index						% 0 code | R code
+		1 index 0 get
+		2 index 1 get					% 0 code | R code f t
+		in-range not { pop } {				% 0 code | R
+			dup 2 get fsetfcode exch known not {	% 0 code | R
+				dup 2 get fontset.loadfont
+			} if					% 0 code | R
+			fontset.loadrange.current		% 0 code |
+			dup currentchars exch .knownget {	% 0 code | glyph
+				3 2 roll pop exch exit
+			} if
+		} ifelse
+	} ifelse } forall
+	pop
+} def
+
+% apply either scalefont of makefont depending on
+% argument type
+% 	font factor mscalefont font
+% 	font matrix mscalefont font
+/mscalefont {
+	dup type /arraytype eq { makefont } { scalefont } ifelse
+} def
+
+% Load specified font, get unicode for each glyph and place
+% apropriate entries in fsetfcode
+% 	/fontiname loadfont -
+% modifies fsetfcode
+/fontset.loadfont {
+4 dict begin
+	/Agl dup /Unidata findresource def
+
+	dup fsetfload exch .knownget {					% /fontiname font-load
+		dup type /nametype eq { findfont } { exec } ifelse	% /fontiname font
+		fsetscale mscalefont
+		1 index 1 index fsetfonts 3 1 roll put			% /fontiname font
+		mark exch
+		/CharStrings .knownget { {
+			pop dup fontset.name2code dup null eq {
+				pop pop
+			} {
+				exch
+			} ifelse
+		} forall } if
+		.dicttomark
+		fsetfcode 3 1 roll put
+	} {
+		pop
+	} ifelse
+end
+} def
+
+% Move specified range from fsetfcode to fsetchars
+% 	[ from to /fontiname loaded ] loadrange -
+% modifies fsetchars
+/fontset.loadrange.current {
+	dup 3 true put
+	aload pop pop 3 1 roll
+	2 index fsetfcode exch .knownget {				% fin from to font-codes
+		3 1 roll 1 exch {					% fin fc | code
+			dup 2 index exch .knownget {			% fin fc | code glyphname
+				3 index 2 array astore			% fin fc | code [ glyphname finame ]
+				currentchars 3 1 roll put		% fin fc |
+			} {						% fin fc | code
+				pop					% fin fc |
+			} ifelse
+		} for pop pop
+	} {
+		4 { pop pop pop } repeat
+	} ifelse
+} def
+
+% Find, or load/cache, or find substitution and get ready
+% to show it (up to setting font)
+% This is common code for ushow and ustringwidth
+% 	code ushow.char.prepare {null|int|array}
+
+/ushow.char.prepare {
+	% An ugly hack, but doing it "right" requires much
+	% more ugly hacks (ushow.char is in fact private).
+	% If FSETSTATS is true in systemdict, AND if there's
+	% fontset.stat.glyph function defined somewhere else,
+	% call it for every glyph printed.
+	systemdict /fontset.stat.glyph .knownget { exec } if
+	% Note: this hook is for catching unicode values, not glyph names.
+	% Its only use is to make reduced Agl, it does not affect font reduction.
+
+	dup fontset.loadchar {				% code G
+							% (G is either null, int or array)
+		dup type /arraytype eq {
+			% best case -- glyph is already there
+			aload pop			% code glyphname fontname
+			dup fsetcfont eq { pop } {
+				fsetfonts exch .knownget { setfont } if
+			} ifelse
+			exch pop			% G code
+			exit
+		} if
+		dup type /integertype eq {
+			% space substitution
+			exch pop fontset.setspacefont
+			exit
+		} if
+		dup null eq {					% code null
+			% got to decide what to do with missing char,
+			% and cache that decision
+			pop fontset.char.prepare.missing
+			exit
+		} if
+		pop exit
+	} loop
+} bind def
+
+% code -> -
+/fontset.char.prepare.missing {
+	fontset.load.notdef.font			% code
+	fsetfonts /notdef .knownget
+	{ dup null ne } { false } ifelse {		% code notdeffont
+		% got /notdef font
+		setfont
+		dup usubstitute dup		% code subst subst
+		3 1 roll			% subst code subst
+		/notdef 2 array astore		% subst code [subst /notdef]
+	} {					% code
+		% no /notdef font -- print <charwidth> spaces
+		% be careful: space itself may also require font loading
+		fontset.setspacefont
+		dup uwidth dup			% code width width
+		3 1 roll			% width code width
+	} ifelse
+
+	% Mark character as missing both in currentvariant (if any)
+	% and in primary fsetchars
+	fontset.is.multivariant {
+		currentvariant null ne {
+			variantchars currentvariant get
+			2 index 2 index put
+		} if
+	} if
+						% width|subst code width|[subst /notdef]
+	fsetchars 3 1 roll put			% width|subst
+} def
+
+/fontset.load.notdef.font {
+	fsetfonts /notdef known not {
+		/notdef findfont fsetscale mscalefont
+		dup /FontName get /notdef eq {
+			fsetfonts exch /notdef exch put
+		} { 
+			pop
+			fsetfonts /notdef null put
+		} ifelse
+	} if
+} bind def
+
+% --- ushow-related internal stuff ---------------------------------------------
+
+% Is a combining character?
+% Used to reset width, see doc/utf.txt for explaination. This a dirty workaround.
+%	codepoint -> t|f
+/uiscombining { {
+	dup dup 16#0300 ge exch 16#036F le and { true exit } if
+	dup dup 16#20D0 ge exch 16#20EF le and { true exit } if
+	dup dup 16#0483 ge exch 16#0489 le and { true exit } if
+	dup dup 16#0591 ge exch 16#05A1 le and { true exit } if
+	usubst.table 1 index .knownget { /.notdefc eq } { false } ifelse exit
+} loop exch pop } def
+
+% Substitution glyph name. Glyphs are taken from /notdef font in case requested
+% code point was not found anywhere in the fontset.
+% 	codepoint -> /glyphname
+/usubstitute { {
+	% big well-defined sets
+	dup 16#0020 lt { /.notdefx exit } if
+	dup 16#FFFF gt { /.notdefz exit } if
+	dup dup 16#0300 ge exch 16#036F le and { /.notdefc exit } if
+	dup dup 16#20D0 ge exch 16#20EF le and { /.notdefc exit } if
+	dup dup 16#2E80 ge exch 16#4DB5 le and { /.notdefw exit } if
+	dup dup 16#4E00 ge exch 16#9FC3 le and { /.notdefw exit } if
+	dup dup 16#A000 ge exch 16#A4C6 le and { /.notdefw exit } if
+	% exclude special cases
+	dup usubst.table exch .knownget { exit } if
+	% smaller cases
+	dup dup 16#0483 ge exch 16#0489 le and { /.notdefc exit } if		% cyrillic combining marks
+	dup dup 16#0591 ge exch 16#05A1 le and { /.notdefc exit } if		% hebrew u
+	dup dup 16#05A2 ge exch 16#05BD le and { /.notdefl exit } if
+	dup dup 16#1DC1 ge exch 16#1DCA le and { /.notdefl exit } if
+	dup dup 16#FE00 ge exch 16#FE0F le and { /.notdefx exit } if		% variation selectors (?)
+	/.notdef exit
+} loop exch pop } def
+
+% glyphs from /notdef font, special cases which do not fit usubstitute ranges
+/usubst.table <<
+	16#02DD /.notdefo
+	16#02DE /.notdefo
+	16#02DF /.notdefo
+	16#02E0 /.notdefo
+	16#02E2 /.notdefo
+	16#02E3 /.notdefo
+	16#02E4 /.notdefo
+	16#02E5 /.notdefo
+
+	% hebrew
+	16#0591	/.notdefl
+	16#0596	/.notdefl
+	16#059A	/.notdefl
+	16#059B	/.notdefl
+	16#05A8 /.notdefc
+	16#05A9 /.notdefc
+	16#05AB /.notdefc
+	16#05AC /.notdefc
+	16#05AE /.notdefc
+	16#05AF /.notdefc
+	16#05B9 /.notdefc
+	16#05BA /.notdefc
+	16#05BF /.notdefc
+	16#05C1 /.notdefc
+	16#05C2 /.notdefc
+	16#05C4 /.notdefc
+	16#05C5 /.notdefl
+	16#05C7 /.notdefl
+
+	16#0483 /.notdefc
+	16#0484 /.notdefc
+	16#0485 /.notdefc
+	16#0486 /.notdefc
+	16#0488 /.notdefo
+	16#0489 /.notdefo
+
+	% katakana-hiragana combining voice marks
+	16#3099 /.notdefc
+	16#309A /.notdefc
+
+	% combining ligatures
+	16#FE20 /.notdefc
+	16#FE21 /.notdefc
+	16#FE22 /.notdefc
+	16#FE23 /.notdefc
+
+	16#FFFF /.notdefx
+	16#FFFE /.notdefx
+
+	16#1DFE /.notdefc
+	16#1DFF /.notdefc
+
+	16#0E31 /.notdefc
+	16#0E34 /.notdefc
+	16#0E35 /.notdefc
+	16#0E36 /.notdefc
+	16#0E37 /.notdefc
+	16#0E38 /.notdefc
+	16#0E39 /.notdefc
+	16#0E3A /.notdefc
+	16#0E47 /.notdefc
+	16#0E48 /.notdefc
+	16#0E49 /.notdefc
+	16#0E4A /.notdefc
+	16#0E4B /.notdefc
+	16#0E4C /.notdefc
+	16#0E4D /.notdefc
+	16#0E4E /.notdefc
+>> def
+
+% Inherent character width, used for substitution with spaces
+%	codepoint uwidth emwidth
+% Note this is last-resort fallback, in case /notdef was not loaded.
+% Generally /notdef* glyphs are used instead of spaces.
+/uwidth {
+	usubstitute uwidth.table exch get
+} def
+
+/uwidth.table <<
+	/.notdefc 0			% combining
+	/.notdefl 0			% low combining
+	/.notdefx 0			% control
+	/.notdefz 0			% weird
+	/.notdef 1			% normal/half-width
+	/.notdefw 2			% wide
+>> def
+
+
+% --- compatibility definitions ------------------------------------------------
+
+% Prevent error on interpreters lacking .glyphwidth
+% Of course, this will produce awfully incorrect results,
+% but *good* replacement would be too complicated.
+/.glyphwidth dup where {
+	pop pop
+} {
+	{ pop (M) stringwidth } bind def
+} ifelse
+
+% Same for dicttomark, apparently missing from some Level 2 interpreters
+% 	mark ... dicttomark
+% is equivalent to
+%	<< ... >>
+% but I feel bad about doing stuff like "<< exch" even if it works.
+/.dicttomark dup where {
+	pop pop
+} {
+	{ counttomark 2 idiv dup dict begin { def } repeat pop currentdict end } def
+} ifelse
+
+% Ghostscript-specific but pretty handy routine
+%	dict key -> value true
+%	dict key -> false
+/.knownget dup where {
+	pop pop
+} {
+	{ 1 index 1 index known not { pop pop false } { get true } ifelse } def
+} ifelse
+
+currentdict end /fontset exch /ProcSet defineresource pop

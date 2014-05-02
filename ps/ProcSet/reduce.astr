@@ -1,0 +1,70 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Generic string operations on [ (s1) (s2) ... (sn) ]
+% structures representing long (s1s2...sn) strings.
+% See Type 42 format description.
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/reduce.astr 10 dict begin
+
+/join-strings {
+	dup 0 exch { length add } forall
+	string					% [ ] dst
+	exch 0 exch {				% dst p str
+		2 index 2 index 2 index
+		putinterval			% dst p str
+		length add
+	} forall pop
+} def
+
+/sa-length {
+	0 exch { length add } forall
+} def
+
+% stra offset length stragetinterval stra
+/sa-getinterval {
+5 dict begin
+	/len exch def
+	/off exch def
+	/stra exch def
+	/enp off len add def
+
+	mark 0 stra {				% f | str
+		dup length 2 index add exch	% f t str
+		2 index enp lt
+		2 index off gt and {
+			2 index off lt {
+				2 index off exch sub
+				1 index length 1 index sub
+				getinterval
+			} if
+
+			1 index enp gt {
+				1 index enp sub
+				1 index length exch sub
+				0 exch getinterval
+			} if
+
+			3 1 roll
+		} {
+			pop
+		} ifelse
+
+		exch pop			% t |
+	} forall pop
+
+	counttomark array astore exch pop
+end
+} def
+
+/sa-getinterval-string {
+	sa-getinterval join-strings
+} def
+
+/sa-reduce {
+	dup length 1 eq { 0 get } if
+} def
+
+currentdict end /ProcSet defineresource pop

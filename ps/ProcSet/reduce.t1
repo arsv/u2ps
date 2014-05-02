@@ -1,0 +1,150 @@
+%!PS-Adobe-3.0 Resource-ProcSet
+
+% Type1 font reduction
+%
+% Beware: you may need to unprotect fonts before you can
+% reduce them. See procset unprotect.
+%
+% This file is part of u2ps, distributed under the terms of
+% GNU Public License version 3
+
+/reduce.t1 20 dict begin
+
+/reduce.dump/ProcSet findresource { def } forall
+
+% dict /Key -> dict /Key val true
+% dict /Key -> dict false
+/src-key? {
+	dup 2 index exch .knownget { true } { pop false } ifelse
+} def
+
+% dict /Key -> dict /Key val true
+% dict /Key -> dict false
+/src-key! {
+	dup 2 index exch .knownget { true } {
+		(Required key %l not found\n) printf
+		pop false
+	} ifelse
+} def
+
+% - -> dst-xuid
+/make-dst-xuid {
+	src-font /XUID .knownget not {
+		% where did these numbers came from?..
+		[ 107 42 realtime ]
+	} if
+	dup length array copy
+	dup dup 2 get srand rand 2 exch put
+} def
+
+% /CharStrings src-charstrings -> -
+/make-dump-charstrings {
+	exch (%l <<\n) printf
+	{
+		exch
+		dup dst-glyphs-dict exch known not {
+			pop pop
+		} {
+			dup (%l ) printf
+			length 2 add
+			dup 2 mod 1 eq { ( ) print 1 add } if
+			(<) print
+			2 idiv
+			phsa-line pop
+			(>\n) print
+		} ifelse
+	} forall
+	(>> def\n) print
+} def
+
+/dump-private-any {
+	dup type /arraytype eq {
+		([ ) print {
+			(%l ) printf
+		} forall (]) print
+	} {
+		(%l) printf
+	} ifelse
+} def
+
+/dump-private-proc {
+	({ ) print {
+		(%s ) printf
+	} forall (}) print
+} def
+
+/dump-private-subr {
+	([\n) print {
+		(\t\t%#H\n) printf
+	} forall (\t]) print
+} def
+
+/dump-private-cases <<
+	/RD //dump-private-proc
+	/ND //dump-private-proc
+	/NP //dump-private-proc
+	/Subrs //dump-private-subr
+	/MinFeature //dump-private-proc
+>> def
+
+
+% /Private src-private -> -
+/dump-private {
+	exch pop
+	(/Private <<\n) print
+	{
+		1 index dump-private-cases exch .knownget not {
+			/dump-private-any load
+		} if
+		3 2 roll (\t%l ) printf
+		exec
+		(\n) print
+	} forall
+	(>> def\n) print
+} def
+
+% font [ glyph-names ] -> -
+/reduce-font {
+10 dict begin
+	/needed-glyphs exch def
+	/src-font exch def
+	/dst-glyphs-dict needed-glyphs length dict def
+	dst-glyphs-dict needed-glyphs {
+		1 index exch true put
+	} forall pop
+	dst-glyphs-dict /.notdef true put
+
+	/src-name src-font /FontName get def
+	/dst-xuid make-dst-xuid def
+
+	/dst-encoding 256 array def
+	/src-encoding src-font /Encoding get def
+	0 1 255 {
+		src-encoding 1 index get		% i si
+		dup dst-glyphs-dict exch known not { pop /.notdef } if
+		dst-encoding 3 1 roll put
+	} for
+
+	/src-charstrings src-font /CharStrings get def
+
+	(20 dict begin\n) print
+	src-font
+	/FontName src-name pkv
+	/FontType src-key! { pkv } if
+	/FontInfo src-key? { pfi } if
+	/PaintType src-key! { pkv } if
+	/StrokeWidth src-key? { pkv } if
+	/FontBBox src-key! { pkv } if
+	/FontMatrix src-key! { pkv } if
+	/XUID dst-xuid pkv
+	/Encoding dst-encoding pfe
+
+	/Private src-key! { dump-private } if
+	/CharStrings src-key! { make-dump-charstrings } if
+	pop
+
+	(FontName currentdict end definefont pop\n) print
+end
+} def
+
+currentdict end /ProcSet defineresource pop

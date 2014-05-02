@@ -1,0 +1,46 @@
+About
+~~~~~
+u2ps is text to postscript converter similar to a2ps,
+with emphasis on Unicode support.
+
+Key features:
+* wide-range unicode support via font sets (see rxvt-unicode);
+  u2ps does not depend on a single font to provide the whole range
+* unicode support implemented in PostScript
+* clean, readable and reasonably small output files
+* font subset embedding for Type 1 and Type 42 (TTF) fonts
+* ANSI control sequences support (color and font variants)
+
+
+Installation
+~~~~~~~~~~~~
+To run u2ps, perl >= 5.6 and ghostscript are needed.
+
+	./configure --prefix=...
+	make
+	make install
+
+
+Documentation
+~~~~~~~~~~~~~
+See man page and text files in doc/ directory.
+
+
+Github note
+~~~~~~~~~~~
+This is git-controlled and somewhat modernized version
+of my old project from Berlios.
+It has been neglected for years and I'm now trying to revive it.
+Some features may be missing, some present but not documented.
+
+
+License
+~~~~~~~
+GPL v3, see LICENSE file
+
+
+Credits
+~~~~~~~
+Written by Alex Suykov <alex.suykov@gmail.com>
+with patches from Pierre Dehaen <dehaen@drever.be>
+and Ionel Mugurel Ciobîcă <I.M.Ciobica@tue.nl>

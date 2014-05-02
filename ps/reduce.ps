@@ -1,0 +1,215 @@
+%!
+
+% Usage:
+% 	cat glyph-list | gs -dWRITESYSTEMDICT -I$u2ps-pslib-dir\
+% 		-dBATCH -dQUIET -dNOPAUSE make-reduced.ps
+% glyph-list is of form:
+% 	/FontName +
+% 	/FontName !
+% 	/FontName /glyphname ;
+%	code $
+% The first one allows embedding font FontName, second
+% forbids, third marks glypname from FontName as used.
+% Finally, "code $" means code will be included in Agl dict.
+%
+% After reading the whole input, make-reduced will output
+% requested subsest from fonts it can reduce (and possibly
+% other resources).
+%
+% The output will be ready for embedding, including
+% %%BeginResource/%%EndResource markers.
+
+% Part of u2ps; not intended for standalone usage.
+
+clear 10 dict begin
+true setglobal
+
+/printf/ProcSet findresource { def } forall
+/unprotect/ProcSet findresource { def } forall
+
+% << dict >> -> [ keys ]
+/dict-keys { [ exch { pop } forall ] } def
+
+% font <<g>> -> -
+/run-reduce-font {
+	1 index /FontType get {				% font <<g>> type
+		dup 1 eq { pop /reduce.t1 exit 	} if
+		dup 42 eq { pop /reduce.t42 exit } if
+		%(%% Don't know how to reduce font type %i\n) printf
+		2 index /FontName get (%%%%NeedsResource: font %s\n) printf
+		pop null exit
+	} loop					% font <<g>> procname
+
+	dup null ne {				% font <<g>> procname
+		2 index /FontName get (%%%%BeginResource: font %s\n) printf
+		/ProcSet findresource		% font <<g>> dict
+		dup /reduce-font get		% font <<g>> dict reduce
+		exch begin exec end		% -
+		(%%EndResource\n) print
+	} { 
+		pop pop pop
+	} ifelse
+} def
+
+% font -> -
+/write-font {
+	dup /FontType get 1 eq {
+		% For Type1 fonts, try to paste raw .pfa file
+		write-font-file
+	} { false } ifelse not {
+		% In general case, try to dump $font structure
+		write-font-dump
+	} if
+} def
+
+/has-suffix {
+10 dict begin
+	/suf exch def
+	/str exch def
+	/strlen str length def
+	/suflen suf length def
+	strlen suflen lt { false } {
+		str strlen suflen sub suflen getinterval suf eq
+	} ifelse
+end
+} def
+
+% string pref -> tf
+/has-prefix {
+	1 index length 1 index length lt {
+		pop pop false
+	} {
+		exch 1 index length 0 exch getinterval eq
+	} ifelse
+} def
+
+% font -> t|f
+/write-font-file {
+	{							% font
+		dup /PathLoad .knownget not { false exit } if	% font PathLoad
+		dup (.pfa) has-suffix not { pop false exit } if	% font PathLoad
+		1 index /FontName get
+		(%%%%NeedsResource: font %s %s\n) printf	% font
+		true exit
+	} loop							% font ret
+	exch pop						% ret
+} def
+
+%% font -> t|f
+%/write-font-file {
+%	<< [ /rangecheck /invalidfileaccess /undefinedfilename ] {
+%		dup errordict exch get def
+%	} forall >>						% font serr
+%
+%	errordict begin
+%		/rangecheck { pop null } def
+%		/invalidfileaccess { pop null } def
+%		/undefinedfilename { pop null } def
+%	end
+%								% serr font
+%	exch {							% serr font
+%		dup /PathLoad .knownget not { false exit } if	% serr font PathLoad
+%		dup (.pfa) has-suffix not { pop false exit } if	% serr font PathLoad
+%		(r) file dup null eq { pop false exit } if	% serr font file
+%		1 index /FontName get (%%BeginResource: font ) print =string cvs print (\n) print
+%		write-font-file-pass
+%		(%%EndResource\n) print
+%		true exit
+%	} loop							% serr font ret
+%	exch pop						% serr ret
+%
+%	exch { errordict 3 1 rotate put } forall		% ret
+%} def
+
+% This has been moved to the calling script for now
+%% file -> -
+%/write-font-file-pass {
+%	2048 string {				% file buf
+%		1 index 1 index readline	% file buf buf tf
+%		exch dup null eq {		% file buf tf buf
+%			pop 1 index print
+%		} {				% file buf tf buf
+%			dup length 1 lt
+%			1 index (%%) has-prefix or
+%			1 index (%!) has-prefix or {
+%				pop
+%			} {
+%				print (\n) print
+%			} ifelse
+%		} ifelse			% file buf tf
+%		not { exit } if
+%	} loop pop pop
+%} def
+
+% gcode-table -> -
+/run-reduce-agl {
+	(%%IncludeResource: category Unidata\n) print
+	(%%BeginResource: unidata Agl\n) print
+	(/Agl <<\n) print
+	256 string exch
+	/Agl/Unidata findresource {		% buf code-table glyphname code
+		2 index 1 index known {		% buf code-table glyphname code
+			exch
+			% Could have used printf here, but printf does rw operations
+			% on compound objects and global/local switching becomes tedious.
+			(\t/) print 3 index cvs print
+			( ) print 2 index cvs print
+			(\n) print
+		} {
+			pop pop
+		} ifelse
+	} forall
+	(>> /Unidata defineresource pop\n) print
+	(%%EndResource\n) print pop pop
+} def
+
+/run-reduce-fonts {
+	{						% FN <<glyphs>>
+		dup false eq {
+			pop pop
+		} {
+			exch				% <<glyphs>> FN
+			dup findfont			% <<g>> FN font
+			dup /FontName get		% <<g>> FN font FontName
+			2 index eq not {		% <<g>> FN font
+				(WARNING: FontName mismatch, ignoring font %2!l\n) printf
+				pop pop pop
+			} {				% <<g>> FN font
+				exch pop exch		% font <<g>>
+				dup type /dicttype eq {
+					dict-keys run-reduce-font
+				} {
+					pop write-font
+				} ifelse
+			} ifelse
+		} ifelse
+	} forall
+} def
+
+% Commands to be fed via stdin
+
+% font embed? -> -
+/mark-font { 
+	systemdict /fstat-table .knownget {	% /font mark FS
+		dup 3 index known {		% /font mark FS
+			3 1 roll put
+		} {
+			pop pop pop
+		} ifelse
+	} if
+} def
+
+% - -> -
+/reduce-agl {
+	systemdict /gcode-table .knownget { dup length 0 gt { run-reduce-agl } if } if
+} def
+
+% - -> -
+/reduce-fonts {
+	systemdict /fstat-table .knownget { dup length 0 gt { run-reduce-fonts } if } if
+} def
+
+false setglobal
+(%stdin) (r) file run
+
+end

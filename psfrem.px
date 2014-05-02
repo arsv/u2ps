@@ -1,0 +1,313 @@
+#!/usr/bin/perl -w
+
+# PostScript Font and Resource Embedding utility
+#
+# Takes PostScript, runs it to get font/glyph usage stats,
+# then embeds required font subsets and possibly other
+# resources referenced with %%IncludeResource
+#
+# It's intended to be used with u2ps, but it can handle
+# any PostScript files as long as they follow DSC
+# and have reasonably sane fonts.
+
+our $BASE = ".";
+our $GS = 'gs';
+
+our @opt_I = ( );		# path(s) to look for resources in
+our @opt_d = ( );		# gs defines
+our @opt_x = ( );		# list of fonts to exclude (well to not include)
+our @opt_a = ( );		# list of fonts to include completely, without reduction
+our $opt_r;			# do font reduction (otherwise, just embed resources)
+our $opt_k;			# keep temporary files, do not rename anything
+our $opt_o;			# output file name (if unset, change the input file in place)
+our $opt_c;			# do not auto-include categories
+our $opt_G = $GS;		# gs command
+our $opt_A;			# do embed adobe core fonts
+
+our %incl = ( );		# resources already included
+our @todo = ( );		# queue of resources to include
+
+# categories known to PS interpreter without declaration
+%innate = map { $_ => 1 } qw(ProcSet Category Font);
+
+
+# Stage 0: parse arguments and set file names
+while(@ARGV && $ARGV[0] =~ /^-(.)(.*)/) {
+	shift;
+	if($1 eq '-' && !$2) {
+		last;
+	} elsif(index('xaId', $1) >= 0) {
+		# array-style option
+		push(@{"opt_$1"}, length($2) ? $2 : shift);
+	} elsif(index('rkcA', $1) >= 0) {
+		# boolean options
+		${"opt_$1"} = 1;
+		unshift(@ARGV, "-$2") if length($2);
+	} elsif(index('oG', $1) >= 0) {
+		# single-argument options
+		${"opt_$1"} = length($2) ? $2 : shift;
+	} else {
+		die "Unknown option -$1\n";
+	}
+}
+# exclude standard Adobe fonts unless told otherwise
+push(@opt_x, readfontlist("$BASE/corefonts")) unless $opt_A;
+
+$file = shift || die "Input file name required\n";
+$temp = $opt_o ? $opt_o : resuffix($file, '.ps', '.tps');
+$stat = resuffix($opt_o ? $opt_o : $file, '.ps', '.sps');
+
+
+# Stage 1: run gs, obtaining reduced fonts and Agl.
+runreduce($file, $stat) if $opt_r;
+
+
+# Stage 2: Read $file, include $stat contents there and possibly other resources too.
+open(FO, '>', $temp) or die "Can't open $temp: $!\n"; select(FO);
+# The base file is handled differently from the rest since DSC comments are needed here.
+includebase($file, $opt_r ? $stat : undef);
+
+
+## Stage 3: rename files, clean up
+close(FO);
+rename($temp, $file) or die "Can't rename $temp to $file: $!\n" unless $opt_o;
+unlink($stat) or die "Can't unlink $stat: $!\n" if $opt_r && !$opt_k;
+
+# end of script, subroutines follow
+
+
+
+sub resuffix
+{
+	my $file = shift;
+	my $old = shift;
+	my $new = shift;
+	
+	if(length($file) > length($old) && substr($file, -length($old)) eq $old) {
+		return substr($file, 0, length($file) - length($old)).$new;
+	} else {
+		return $file.$new;
+	}
+}
+
+sub runreduce
+{
+	my ($file, $stat) = @_;
+
+	@GS = ($GS, '-dBATCH', '-dNOPAUSE', '-dWRITESYSTEMDICT', '-dQUIET', '-sDEVICE=nullpage');
+	push(@GS, "-I$_") foreach(@opt_I);
+	push(@GS, "-d$_") foreach(@opt_d);
+	push(@GS, "$BASE/ps/fstat.ps", $file, "$BASE/ps/reduce.ps");
+
+	($fh, $pid) = spawnto($stat, @GS);
+	print $fh "/$_ false mark-font\n" foreach(@opt_x);
+	print $fh "/$_ true mark-font\n"  foreach(@opt_a);
+	print $fh "reduce-agl\n";
+	print $fh "reduce-fonts\n";
+	close($fh);
+	waitpid($pid, 0);
+	die "$GS[0] failed: $?\n" if $?;
+}
+
+sub spawnto
+{
+	my $stat = shift;
+	local (*FR, *FW, *FS);
+
+	open(FS, '>', $stat) || die "Can't open $stat: $!\n";
+	pipe(FR, FW) || die "pipe: $!\n";
+
+	my $pid = fork();
+	die "Can't fork: $!\n" if $pid < 0;
+
+	if($pid) {
+		close(FS);
+		close(FR);
+		return (*FW, $pid);
+	} else {
+		close(FW);
+		open(STDOUT, '>&', FS) || die "Can't dup fh: $!\n";
+		open(STDIN, '<&',  FR) || die "Can't dup fh: $!\n";
+		exec(@_);
+		die "exec($_[0]) failed: $!\n";
+	}
+}
+
+sub includebase
+{
+	my $file = shift;
+	my $stat = shift;
+	local *FILE;
+
+	open(FILE, '<', $file) or die "Can't open $file: $!\n";
+
+	my $firstline = <FILE>;
+	includestat($stat), undef $stat if $stat && $firstline !~ /^%!PS-Adobe/;
+	print $firstline;
+
+	my $inres = 0;
+	my $inblock = 0;
+	local $_;
+	while(<FILE>) {
+		if(/^%%BeginProlog/ && $stat) {
+			print; includestat($stat), undef $stat; next
+		} elsif(/^%%BeginResource:\s*(.*)/) {
+			$incl{trim($1)} = 1;
+			$inres = 1;
+		} elsif(/^%%EndResource/) {
+			$inres = 0;
+		} elsif(/^%%IncludeResource:(.*)/) {
+			die "$file:$.: %%IncludeResource inside %%BeginResource..%%EndResource\n" if $inres;
+			includeres($1, "$file:$."); next
+		} elsif(/^%%(Page:|BeginSetup|BeginPageSetup)/ && $stat) {
+			# we're late with $stat, the file must be lacking prolog
+			print "%%BeginProlog\n";
+			includestat($stat), undef $stat;
+			print "%%EndProlog\n";
+		}
+
+		print;
+	}
+}
+
+sub includeres
+{
+	my $res = shift;
+	my $where = shift;
+	$res = trim($res);
+	return if $incl{$res};
+	$incl{$res} = 1;
+
+	if(!($res =~ /^(\S+)\s+(\S+)/)) {
+		warn "$where: bad resource \"$res\"\n";
+		print "%%DocumentNeedsResource: $res\n";
+		return;
+	}
+
+	my $cat = $1;
+	my $name = $2;
+	my $de;
+
+	# DSC standard makes it very difficult to handle the situation
+	# gracefully, with the resources being requested as "category Foo"
+	# but the files being named Category/Foo.
+	foreach $dir (@opt_I) {
+		if($cat eq 'font') {
+			# very special case
+			my $fn = "$dir/fonts/$name.pfa";
+			next unless -f $fn;
+			includeresfile($res, $fn) && return || last;
+		}
+		opendir(DIR, $dir) || next;
+		while(defined($de = readdir(DIR))) {
+			next if $de =~ /^\./;
+			next unless -d "$dir/$de";
+			next unless lc($de) eq lc($cat);
+			next unless -f "$dir/$de/$name";
+			includeresfile($res, "$dir/$de/$name") && return || last;
+		};
+		close(DIR);
+	}
+
+	warn "$where: resource not found: $res\n";
+	print "%%DocumentNeedsResources: $res\n";
+}
+
+sub includeresfile
+{
+	my ($res, $file) = @_;
+	local *FILE;
+	local $_;
+	
+	if(!open(FILE, '<', $file)) {
+		warn "Can't open $file: $!\n";
+		return;
+	};
+
+	print "%%BeginResource: $res\n";
+	my $text = 0;
+	my @todo = ( );
+	local $.;
+	while(<FILE>) {
+		queueres(\@todo, $text, "$file:$.", $1, 1)
+			if m!^%%IncludeResource:(.*)!;
+		queueres(\@todo, $text, "$file:$.", "category $1")
+			if $. == 1 && /^%!PS-Adobe\S+\s+Resource-(\S+)/ && !$opt_c && !$innate{$1};
+		next if /^%%/ or /^%!/;
+		$text = 1; print;
+	};
+	print "%%EndResource\n";
+
+	close(FILE);
+
+	my $subres;
+	foreach $subres (@todo) {
+		includeres(@$subres);
+	}
+
+	return 1;
+}
+
+sub queueres
+{
+	my $queue = shift;
+	my $text = shift;
+	my $where = shift;
+	my $res = shift;
+
+	$text ? push(@$queue, [ $res, $where ]) : includeres($res, $where);
+}
+
+sub includestat
+{
+	my $file = shift;
+	local *STAT;
+	
+	open(STAT, '<', $file) || die "Can't open $file: $!\n";
+
+	my $inres = 0;
+	local $_;
+	while(<STAT>) {
+		if(/^%%BeginResource:\s*(.*)/) {
+			$incl{trim($1)} = 1;
+			$inres = 1;
+		} elsif(/^%%EndResource/) {
+			$inres = 0;
+		} elsif(/^%%IncludeResource:(.*)/) {
+			die "$file:$.: %%IncludeResource inside %%BeginResource..%%EndResource\n" if $inres;
+			includeres($1, "$file:$."); next
+		}
+		print;
+	}
+	close(STAT);
+}
+
+sub trim
+{
+	my $s = shift;
+	$s =~ s/^\s+//;
+	$s =~ s/\s+$//;
+	return $s;
+}
+
+sub readfontlist
+{
+	my $file = shift;
+
+	local *LIST;
+	if(!open(LIST, '<', $file)) {
+		warn "Can't open $file: $!\n";
+		return;
+	};
+
+	my @list = ( );
+	while(<LIST>) {
+		next if /^#/;
+		next unless /\S/;
+		s/^\s+//sm;
+		s/\s+$//sm;
+		push(@list, $_);
+	};
+
+	return @list;
+}
