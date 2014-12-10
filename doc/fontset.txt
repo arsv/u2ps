@@ -17,7 +17,7 @@ On fontsets
 ~~~~~~~~~~~~~
 Fontsets is what u2ps uses instead of regular postscript fonts.
 In PostScript, fonts are generally limited to 256-character encoding.
-To render full Unicode range, an additional structure is implemented
+To render full Unicode range, some additional structure is implemented
 atop of fonts.
 
 Basically fontset is a composite font, a set of regular PostScript fonts

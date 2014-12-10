@@ -18,4 +18,4 @@ will be effective immediately.
 The only exception is ps/setup.ps, that is the part that is embedded
 in the output document.
 
-For any postscript-related debuggin, check ps/ProcSet/printf.
+For any postscript-related debugging, check ps/ProcSet/printf.
