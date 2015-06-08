@@ -8,9 +8,11 @@ bindir = /usr/bin
 basedir = /usr/share/u2ps
 man1dir = /usr/share/man/man1
 
-scripts = u2ps.px psfrem.px ttf2pt42.px
+scripts = u2ps.px psfrem.px
 
-all: scripts man
+all: scripts ttf2pt42 man
+
+ttf2pt42: ttf2pt42.o warn.o
 
 # make copies of *.px, setting up proper paths
 scripts: $(scripts:.px=.x)
