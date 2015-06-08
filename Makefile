@@ -1,3 +1,6 @@
+CC = gcc
+CFLAGS = -Wall -g
+
 perl = /usr/bin/perl
 gs = gs
 

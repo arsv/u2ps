@@ -1,2 +1,3 @@
 config.log
 temp
+*.o
