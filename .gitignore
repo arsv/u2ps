@@ -3,3 +3,7 @@ temp
 *.o
 ttf2pt42
 u2ps
+test/*
+!test/Makefile
+!test/*.c
+!test/*.h
