@@ -21,6 +21,7 @@ enum linebreak { HARD = 0, SOFT = 1 };
 static void new_page(void);
 static void end_page(void);
 static void new_line(enum linebreak soft);
+static void end_line(enum linebreak soft);
 static void put_header(const char* cmd, const char* string);
 
 int print_chunk(char* chunk, int start, int softlen)
@@ -52,8 +53,7 @@ int take_ctl(char* ptr)
 	switch(*ptr)
 	{
 		case 0x0A: /* newline */
-			pscmd("n"); psnl(0);
-			activeline = 0;
+			end_line(HARD);
 			break;
 		case 0x0D: /* carriage return */
 			pscmd("cr"); psnl(0);
@@ -122,7 +122,7 @@ int take_uni(char* ptr)
 	int width = len < 0 ? 1 : uniwidth(codepoint);
 
 	if(genopts.cols && genopts.wrap && softcol + width > genopts.cols) {
-		pscmd("w"); psnl(0);
+		end_line(SOFT);
 		new_line(SOFT);
 	}
 	softcol += width;
@@ -188,6 +188,18 @@ void new_line(enum linebreak soft)
 	softline++;
 	if(!soft) hardline++;
 	softcol = 0;
+
+	new_line_attr();
+}
+
+void end_line(enum linebreak soft)
+{
+	if(activeline)
+		end_line_attr();
+	pscmd(soft ? "w" : "n");
+	psnl(0);
+	softcol = 0;
+	if(!soft) activeline = 0;
 }
 
 void new_page(void)
@@ -217,13 +229,15 @@ void new_page(void)
 	put_header("Fr", mirror ? headings.fl : headings.fr);
 
 	pscmd("tr");
-	new_page_font_color();
+	new_page_attr();
 	psnl(1);
 }
 
 void end_page(void)
 {
 	psnl(1);
+	if(activeline)
+		end_line_attr();
 	if(softline)
 		pscmd("showpage");
 	if(softline && genopts.inverse)

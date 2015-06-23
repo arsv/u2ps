@@ -39,17 +39,25 @@ static void ansi_reset(void);
 
 static void put_ansi_diff(void);
 
-void new_page_font_color(void)
+void new_page_attr(void)
 {
 	next = curr;
-	curr.flags = 0;
+	curr.flags &= ~(UL | SL);
 	curr.fg = UNDEFINED;
 	curr.bg = UNDEFINED;
 
 	put_ansi_diff();
 };
 
-void end_file_font_color(void)
+void new_line_attr(void)
+{
+	if(curr.flags & UL)
+		pscmd("ul");
+	if(curr.flags & SL)
+		pscmd("sl");
+}
+
+void end_line_attr(void)
 {
 	if(curr.flags & UL)
 		pscmd("ue");
