@@ -1,4 +1,5 @@
 config.log
+tags
 temp
 *.o
 ttf2pt42
