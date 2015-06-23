@@ -4,6 +4,16 @@
 #include "config.h"
 #include "warn.h"
 
+/* This should have been a shell script, but argument handling happens
+   to be quite unwieldy for a shell script. What this does is running
+
+	gs -dBATCH -sDEVICE+nullpage -dQUIET -dNOPAUSE \
+		-I$BASE/ps -- $BASE/t2pt42.ps $1 ${1/.ttf/.pfa}
+
+   with some argument checking thrown in.
+
+   The actual convertion is done in Postscript, see t2pt42.ps */
+
 void openout(const char* fname)
 {
 	int fd = open(fname, O_WRONLY | O_CREAT, 0644);

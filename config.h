@@ -1,2 +1,3 @@
 #define GS "gs"
-#define BASE "."
+#define PATH "."
+#define BASE "ps"
