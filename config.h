@@ -7,3 +7,13 @@
 /* Path to postscript library directory; psfrem and ttf2pt42 will use -I$BASE
    when running $GS above */
 #define BASE "ps"
+
+/* Input will be read in block this large: */
+#define CHUNKLEN 1024
+
+/* A token is either a (utf-8) character, or a control sequence
+   like \033[38;5;200m. u2ps does not attempt to maintain a proper
+   state machine, and depends on the assumption that any valid token
+   will not be longer than this value. */
+#define MAXTOKEN 100
+/* The value itself must be less than CHUNKLEN */

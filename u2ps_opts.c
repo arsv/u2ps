@@ -9,6 +9,9 @@ char* inputname = NULL;
 char* outputname = NULL;
 char* tmpoutname = NULL;
 
+char** passopts = { NULL };
+int passnum = 0;
+
 int verbose = 0;
 
 struct genopts genopts = {
@@ -50,6 +53,8 @@ void handle_args(int argc, char** argv)
 
 	if(argc < 2)
 		die_print_usage();
+
+	passopts = malloc(argc*sizeof(char*));
 
 	while(i < argc) {
 		if(argv[i][0] != '-')
@@ -293,7 +298,8 @@ void set_empty_headings(void)
 
 void add_passopt(char* opt)
 {
-
+	passopts[passnum++] = opt;
+	passopts[passnum] = NULL;
 }
 
 static void set_termfontsize(int tbw, int tbh);

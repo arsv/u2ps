@@ -10,36 +10,16 @@
 FILE* input;
 FILE* output;
 
-extern struct genopts genopts;
-extern struct runopts runopts;
+static int chunklen = 0;
+static int chunkptr = 0;
+static char chunk[CHUNKLEN];
 
-extern char* inputname;
-extern char* outputname;
-extern char* tmpoutname;
-
-#define CHUNKLEN 1024
-#define MAXTOKEN 100
-int chunklen = 0;
-int chunkptr = 0;
-char chunk[CHUNKLEN];
-
-char** passopt;
-int passptr = 0;
-
-extern void handle_args(int argc, char** argv);
 static void open_input_output(void);
 static void close_input_output(void);
-static int exec_psfrem(void);
-
-static int read_chunk(char* chunk, int size, int ptr, int len);
-extern int print_chunk(char* chunk, int start, int end);
-
 extern void new_file();
 extern void end_file();
-
-static char* resuffix(const char* name, const char* oldsuff, const char* newsuff);
-static FILE* fmkstemps(char* template, int suffixlen);
-static char* preptemplate(const char* template);
+static int read_chunk(char* chunk, int size, int ptr, int len);
+static int exec_psfrem(void);
 
 int main(int argc, char** argv)
 {
@@ -63,29 +43,6 @@ int main(int argc, char** argv)
 
 	close_input_output();
 	return exec_psfrem();
-}
-
-void open_input_output(void)
-{
-	if(!inputname)
-		input = stdin;
-	else if(!(input = fopen(inputname, "r")))
-		die("Cannot open %s: %m\n", inputname);
-
-	if(inputname && !outputname && !runopts.stdout)
-		outputname = resuffix(inputname, ".txt", ".ps");
-
-	if(outputname) {
-		if(!(output = fopen(outputname, "w")))
-			die("Cannot open %s: %m\n", outputname);
-	} else if(runopts.skipfrem) {
-		output = stdout;
-	} else {
-		if(!tmpoutname)
-			tmpoutname = preptemplate("u2ps.XXXXXXXX.ps");
-		if(!(output = fmkstemps(tmpoutname, 3)))
-			die("Cannot create temporary file: %m\n");
-	}
 }
 
 char* preptemplate(const char* template)
@@ -133,6 +90,29 @@ char* resuffix(const char* name, const char* oldsuff, const char* newsuff)
 	return newname;
 }
 
+void open_input_output(void)
+{
+	if(!inputname)
+		input = stdin;
+	else if(!(input = fopen(inputname, "r")))
+		die("Cannot open %s: %m\n", inputname);
+
+	if(inputname && !outputname && !runopts.stdout)
+		outputname = resuffix(inputname, ".txt", ".ps");
+
+	if(outputname) {
+		if(!(output = fopen(outputname, "w")))
+			die("Cannot open %s: %m\n", outputname);
+	} else if(runopts.skipfrem) {
+		output = stdout;
+	} else {
+		if(!tmpoutname)
+			tmpoutname = preptemplate("u2ps.XXXXXXXX.ps");
+		if(!(output = fmkstemps(tmpoutname, 3)))
+			die("Cannot create temporary file: %m\n");
+	}
+}
+
 void close_input_output(void)
 {
 	fclose(input);
@@ -158,9 +138,11 @@ int read_chunk(char* chunk, int size, int ptr, int len)
 
 int exec_psfrem(void)
 {
-	char* psfrem[passptr + 10];
+	char** psfrem = malloc((passnum + 10)*sizeof(char*));
 	char** p = psfrem;
-	char** q = passopt;
+	char** q = passopts;
+
+	if(!psfrem) die("malloc: %m\n");
 
 	*p++ = PATH "/psfrem.px";
 	if(!runopts.skipfonts)

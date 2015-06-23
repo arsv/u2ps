@@ -6,17 +6,11 @@
 #include "u2ps.h"
 #include "warn.h"
 
-extern char* inputname;
-extern struct genopts genopts;
-extern struct pagelayout pagelayout;
-extern struct headings headings;
-extern struct fonts fonts;
-
-bool activeline = 0;
-int page = 0;
-int hardline = 0;
-int softline = 0;
-int softcol = 0;
+static bool activeline = 0;
+static int page = 0;
+static int hardline = 0;
+static int softline = 0;
+static int softcol = 0;
 
 static int take_esc(char* ptr);
 static int take_ctl(char* ptr);
@@ -24,26 +18,10 @@ static int take_uni(char* ptr);
 static int take_csi(char* ptr);
 
 enum linebreak { HARD = 0, SOFT = 1 };
-void new_page(void);
-void end_page(void);
-void new_line(enum linebreak soft);
-
-extern void psnl(int blanks);
-extern void psline(const char* line, ...);
-extern void pscmd(const char* command, ...);
-extern void psuni(const char* string, int len);
-extern void psbad(int len);
-extern void psstr(const char* string);
-
-extern int deutf(char* ptr, int* codepoint);
-extern int uniwidth(int codepoint);
-
-extern void put_global_setup(void);
-extern void put_font_color(void);
+static void new_page(void);
+static void end_page(void);
+static void new_line(enum linebreak soft);
 static void put_header(const char* cmd, const char* string);
-
-extern void new_page_font_color(void);
-extern void handle_csi(int cmd, int argc, int* args);
 
 int print_chunk(char* chunk, int start, int softlen)
 {
@@ -140,7 +118,7 @@ int take_csi(char* ptr)
 int take_uni(char* ptr)
 {
 	int codepoint;
-	int len = deutf(ptr, &codepoint);
+	int len = deutf((unsigned char*) ptr, &codepoint);
 	int width = len < 0 ? 1 : uniwidth(codepoint);
 
 	if(genopts.cols && genopts.wrap && softcol + width > genopts.cols) {
