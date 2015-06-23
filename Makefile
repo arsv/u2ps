@@ -1,5 +1,4 @@
-CC = gcc
-CFLAGS = -Wall -g
+include config.mk
 
 u2ps: u2ps.o u2ps_opts.o u2ps_pswr.o u2ps_term.o u2ps_tset.o u2ps_tcsi.o u2ps_unicode.o warn.o
 
