@@ -2,6 +2,7 @@ config.log
 tags
 temp
 *.o
+.*.swp
 ttf2pt42
 u2ps
 test/*
