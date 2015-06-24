@@ -28,14 +28,17 @@ int main(int argc, char** argv)
 
 	new_file();
 	while(1) {
-		if((chunklen = read_chunk(chunk, CHUNKLEN, chunkptr, chunklen)) <= 0)
+		if((chunklen = read_chunk(chunk, CHUNKLEN, chunkptr, chunklen)) > 0)
+			chunkptr = 0;
+		else
 			break;
 		if(chunklen < MAXTOKEN)
 			break;
-		if((chunkptr = print_chunk(chunk, 0, chunklen - MAXTOKEN)) <= 0)
+		if((chunkptr = print_chunk(chunk, chunklen - MAXTOKEN)) <= 0)
 			break;
-	} if(chunkptr < chunklen)
-		print_chunk(chunk, chunkptr, chunklen);
+	} if(chunkptr < chunklen) {
+		print_chunk(chunk + chunkptr, chunklen - chunkptr);
+	}
 	end_file();
 
 	if(runopts.skipfrem)

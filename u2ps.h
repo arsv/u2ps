@@ -73,7 +73,7 @@ extern struct fonts {
 void handle_args(int argc, char** argv);
 
 /* u2ps_term.c */
-int print_chunk(char* chunk, int start, int softlen);
+int print_chunk(char* chunk, int softlen);
 
 /* u2ps_tset.c */
 void put_global_setup(void);

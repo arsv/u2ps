@@ -24,7 +24,7 @@ static void new_line(enum linebreak soft);
 static void end_line(enum linebreak soft);
 static void put_header(const char* cmd, const char* string);
 
-int print_chunk(char* chunk, int start, int softlen)
+int print_chunk(char* chunk, int softlen)
 {
 	char* ptr = chunk;
 	char* end = chunk + softlen;
