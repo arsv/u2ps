@@ -32,12 +32,12 @@ int main(int argc, char** argv)
 			chunkptr = 0;
 		else
 			break;
-		if(chunklen < MAXTOKEN)
+		if(chunklen <= MAXTOKEN)
 			break;
 		if((chunkptr = print_chunk(chunk, chunklen - MAXTOKEN)) <= 0)
 			break;
 	} if(chunkptr < chunklen) {
-		print_chunk(chunk + chunkptr, chunklen - chunkptr);
+		print_chunk(chunk, chunklen);
 	}
 	end_file();
 
@@ -127,7 +127,7 @@ int read_chunk(char* chunk, int size, int ptr, int len)
 	int save = len - ptr;
 
 	if(save > 0)
-		memcpy(chunk, chunk + ptr, save);
+		memmove(chunk, chunk + ptr, save);
 	else
 		save = 0;
 
