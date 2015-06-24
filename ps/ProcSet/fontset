@@ -493,6 +493,7 @@ end
 	dup dup 16#05A2 ge exch 16#05BD le and { /.notdefl exit } if
 	dup dup 16#1DC1 ge exch 16#1DCA le and { /.notdefl exit } if
 	dup dup 16#FE00 ge exch 16#FE0F le and { /.notdefx exit } if		% variation selectors (?)
+	dup dup 16#FFE0 ge exch 16#FFE6 le and { /.notdefw exit } if		% fullwidth currency
 	/.notdef exit
 } loop exch pop } def
 

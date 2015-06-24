@@ -130,6 +130,8 @@ int uniwidth(int codepoint)
 		case 0x0E4E: return 0;
 		// variation selectors (?)
 		case 0xFE00 ... 0xFE0F: return 0;
+		// fullwidth currency
+		case 0xFFE0 ... 0xFFE6: return 2;
 		// Everything else is single-width as well
 		default: return 1;
 	}
