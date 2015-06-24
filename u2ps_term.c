@@ -56,7 +56,7 @@ int take_ctl(char* ptr)
 			end_line(HARD);
 			break;
 		case 0x0D: /* carriage return */
-			pscmd("cr"); psnl(0);
+			pscmd("!cr");
 			softcol = 0;
 			break;
 		case 0x09: /* tab */
@@ -196,8 +196,7 @@ void end_line(enum linebreak soft)
 {
 	if(activeline)
 		end_line_attr();
-	pscmd(soft ? "w" : "n");
-	psnl(0);
+	pscmd(soft ? "!w" : "!n");
 	softcol = 0;
 	if(!soft) activeline = 0;
 }

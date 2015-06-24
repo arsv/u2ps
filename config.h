@@ -17,3 +17,7 @@
    will not be longer than this value. */
 #define MAXTOKEN 100
 /* The value itself must be less than CHUNKLEN */
+
+
+/* PostScript output lines will be (softly) wrapped at specified column. */
+#define PSLINE 100

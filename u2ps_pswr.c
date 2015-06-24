@@ -1,19 +1,24 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include "config.h"
+#include "warn.h"
 
 extern FILE* output;
 
 enum psmode { NOTHING = 0, COMMAND, UNISTRING, BADSTRING } state = NOTHING;
 
+static int pscol = 0;
+
 void pswrite(const char* string, int len)
 {
-	fwrite(string, len, 1, output);
+	pscol += fwrite(string, 1, len, output);
+	if(len && string[len-1] == '\n') pscol = 0;
 }
 
 void psputs(const char* string)
 {
-	fputs(string, output);
+	pswrite(string, strlen(string));
 }
 
 void psmode(enum psmode newstate)
@@ -62,11 +67,16 @@ void psline(const char* fmt, ...)
 
 void pscmd(const char* fmt, ...)
 {
+	int nl = (*fmt == '!'); if(nl) fmt++;
+	if(!nl && pscol >= PSLINE) psnl(0);
+
 	va_list ap;
 	psmode(COMMAND);
 	va_start(ap, fmt);
-	vfprintf(output, fmt, ap);
+	pscol += vfprintf(output, fmt, ap);
 	va_end(ap);
+
+	if(nl) psnl(0);
 }
 
 void psbad(int len)
