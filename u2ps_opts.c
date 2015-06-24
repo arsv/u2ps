@@ -257,6 +257,8 @@ void handle_opt(struct option* opt, char* arg)
 	}
 }
 
+/* Paper size is either a name like "a4", or numeric W:H dimensions. */
+
 void set_paper(char* opt)
 {
 	char* sep = strpbrk(opt, ":");
@@ -278,6 +280,8 @@ void set_paper(char* opt)
 	}
 }
 
+/* Colon-separated CSS-style margins. */
+
 void set_margins(char* opt)
 {
 	char* l1 = strsep(&opt, ":");
@@ -298,6 +302,8 @@ void set_empty_headings(void)
 
 void add_passopt(char* opt)
 {
+	/* passopts is argc-long, and at most all of argv[1:] can be
+	   pushed there, so there is no need for bound checks here. */
 	passopts[passnum++] = opt;
 	passopts[passnum] = NULL;
 }
@@ -321,6 +327,11 @@ void set_derivative_parameters()
 	if(genopts.mark)
 		genopts.wrap = YES;
 }
+
+/* The following tries to set some consistent values for the primary
+   font size, the number of lines and the number of columns for wrapping.
+   Any of the three can be set by the user, and by this point bounding box
+   (paper size minus margins) is known as well. */
 
 static void set_termfontsize(int tw, int th)
 {
