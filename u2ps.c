@@ -196,7 +196,7 @@ int exec_psfrem(void)
 
 	if(!psfrem) die("malloc: %m\n");
 
-	*p++ = PATH "/psfrem.px";
+	*p++ = PATH "/psfrem";
 	if(!runopts.skipfonts)
 		*p++ = "-r";
 	if(runopts.embedstdfonts)
@@ -210,7 +210,7 @@ int exec_psfrem(void)
 		*p++ = "--";
 		*p++ = outputname;
 	} else {
-		*p++ = "-i";
+		*p++ = "-o";
 		*p++ = "--";
 		*p++ = tmpoutname;
 	}
