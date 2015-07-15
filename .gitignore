@@ -5,6 +5,7 @@ temp
 .*.swp
 ttf2pt42
 u2ps
+psfrem
 test/*
 !test/Makefile
 !test/*.c
