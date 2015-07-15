@@ -152,8 +152,11 @@ void new_file(void)
 
 	psline("%%%%BeginProlog\n");
 	psline("%%%%IncludeResource: font notdef\n");
+	psline("%%%%IncludeResource: category Unidata\n");
+	psline("%%%%IncludeResource: category FontSet\n");
 	psline("%%%%IncludeResource: procset fontset\n");
 	psline("%%%%IncludeResource: procset uniterm\n");
+	psline("%%%%IncludeResource: unidata Agl\n");
 	psline("%%%%IncludeResource: fontset %s\n", fonts.text.name);
 	if(strcmp(fonts.head.name, fonts.text.name))
 		psline("%%%%IncludeResource: fontset %s\n", fonts.head.name);
