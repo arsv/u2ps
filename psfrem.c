@@ -19,7 +19,6 @@ extern struct dynlist includefonts;
 extern void handle_options(int argc, char** argv);
 static void run_reduce(char* inputname, char* statsname);
 extern void filter_embed(char* outputname, char* inputname, char* statsname);
-static void clean_rename(char* outputname, char* tempname, char* statsname);
 
 static FILE* spawn_pipe(char** cmd, char* output, int* pid);
 
@@ -32,7 +31,8 @@ int main(int argc, char** argv)
 
 	filter_embed(outputname, inputname, statsname);
 
-	clean_rename(outputname, inputname, statsname);
+	if(statsname)
+		unlink(statsname);
 
 	return 0;
 }
@@ -73,17 +73,6 @@ void run_reduce(char* inputname, char* statsname)
 		die("wait failed: %m\n");
 	if(status)
 		die("gs failed, aborting\n");
-}
-
-void clean_rename(char* outputname, char* inputname, char* statsname)
-{
-	if(statsname)
-		if(unlink(statsname) < 0)
-			die("Cannot unlink %s: %m\n", statsname);
-	if(!outputname)
-		return;
-	if(rename(outputname, inputname) < 0)
-		die("Cannot rename %s to %s: %m\n", outputname, inputname);
 }
 
 FILE* spawn_pipe(char** cmd, char* out, int* outpid)

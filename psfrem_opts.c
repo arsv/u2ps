@@ -27,11 +27,9 @@ struct dynlist libpath;
 struct dynlist excludefonts;
 struct dynlist includefonts;
 
-int keeptemp;
-
-#define REDUCE	(1<<0)
-#define STDOUT	(1<<1)
-#define ADOBE	(1<<2)
+int keeptemp = 0;
+int doreduce = 0;
+int allfonts = 0;
 
 static char* resuffix(const char* name, const char* oldsuff, const char* newsuff);
 static void exclude_corefonts(void);
@@ -41,7 +39,6 @@ void handle_options(int argc, char** argv)
 	int i;
 	char* arg;
 	char* val;
-	int flags = 0;
 
 	for(i = 1; i < argc; i++) {
 		if(*(arg = argv[i]) != '-')
@@ -67,9 +64,8 @@ void handle_options(int argc, char** argv)
 			case 'd': dapush(&passopt, arg); break;
 
 			case 'k': keeptemp = 1; break;
-			case 'r': flags |= REDUCE; break;
-			case 'A': flags |= ADOBE; break;
-			case 'o': flags |= STDOUT; break;
+			case 'r': doreduce = 1; break;
+			case 'A': allfonts = 1; break;
 
 			default:
 				die("psfrem: unknown option -%c\n", arg[1]);
@@ -78,23 +74,23 @@ void handle_options(int argc, char** argv)
 
 out:	if(i < argc)
 		inputname = argv[i++];
-	else
+	else if(doreduce)
 		die("psfrem: input file name required\n");
 
-	if(flags & STDOUT)
-		outputname = NULL;
-	else if(i < argc)
+	if(i < argc)
 		outputname = argv[i++];
 	else
-		outputname = resuffix(inputname, ".ps", ".tps");
+		outputname = NULL;
 
 	if(i < argc)
 		die("psfrem: too many arguments\n");
 
-	if(flags & REDUCE)
-		statsname = resuffix(outputname ? outputname : inputname, ".ps", ".sps");
+	/* This is not exactly correct, especially the input name part,
+	   but it works well enough for u2ps so why bother with proper tmpnames. */
+	if(doreduce)
+		statsname = resuffix(outputname ? outputname : inputname, ".ps", ".sts");
 
-	if(!(flags & ADOBE))
+	if(!allfonts)
 		exclude_corefonts();
 }
 

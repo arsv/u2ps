@@ -39,7 +39,7 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 	char* rest;
 
 	output = outputname ? fopen(outputname, "w") : stdout;
-	input = fopen(inputname, "r");
+	input = inputname ? fopen(inputname, "r") : stdin;
 
 	if(!output)
 		die("Cannot create %s: %m\n", outputname);
@@ -74,9 +74,6 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 
 		contline = !endswith(line, '\n');
 	}
-
-	fclose(input);
-	fclose(output);
 }
 
 /* Where should we dump reduced resources?

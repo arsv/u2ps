@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 #include "config.h"
 #include "warn.h"
@@ -48,7 +49,7 @@ static void close_input_output(void);
 extern void new_file();
 extern void end_file();
 static int read_chunk(char* chunk, int size, int ptr, int len);
-static int exec_psfrem(void);
+static int run_psfrem(void);
 
 int main(int argc, char** argv)
 {
@@ -74,7 +75,7 @@ int main(int argc, char** argv)
 		return 0;
 
 	close_input_output();
-	return exec_psfrem();
+	return run_psfrem();
 }
 
 int read_chunk(char* chunk, int size, int ptr, int len)
@@ -99,60 +100,16 @@ int read_chunk(char* chunk, int size, int ptr, int len)
    and needs a real file to work on as well as a temporary file
    to store glyph stats.
 
-   So we've got to decide here where to write the output to.
-   There are three principal options here:
+   Without psfrem, we write directly to the output.
 
-	* inputname -> outputname|inputname.ps
-	* inputname|stdin -> stdout
+   When psfrem is expected, tmpoutname is created, u2ps writes
+   there, closes it and runs psfrem tmpoutname outputname.
 
-   In the first case, the stats file name is based on outputname,
-   which may happen to be inputname.ps.
-   In the last case, a file in /tmp is used instead. */
-
-char* preptemplate(const char* template)
-{
-	char* dir = getenv("TMPDIR");
-	if(!dir) dir = "/tmp";
-
-	int templen = strlen(template);
-	int dirlen = strlen(dir);
-	char* out = malloc(templen + dirlen + 2);
-
-	if(!out) die("Cannot allocate memory: %m\n");
-
-	strncpy(out, dir, dirlen);
-	out[dirlen] = '/';
-	strncpy(out + dirlen + 1, template, templen);
-	out[dirlen + templen + 1] = '\0';
-
-	return out;
-}
-
-FILE* fmkstemps(char* template, int suffixlen)
-{
-	int fd;
-
-	if((fd = mkstemps(template, suffixlen)) < 0)
-		return NULL;
-
-	return fdopen(fd, "w");
-}
-
-char* resuffix(const char* name, const char* oldsuff, const char* newsuff)
-{
-	int namelen = strlen(name);
-	int oldsufflen = strlen(oldsuff);
-	int newsufflen = strlen(newsuff);
-	char* newname = malloc(namelen + newsufflen + 2);
-
-	strcpy(newname, name);
-	if(namelen > oldsufflen && !strcmp(newname + namelen - oldsufflen, oldsuff))
-		strcpy(newname + namelen - oldsufflen, newsuff);
-	else
-		strcpy(newname + namelen, newsuff);
-
-	return newname;
-}
+   Temp file name is based on outputname whenever possible,
+   and /tmp fallback is only used when there is no outputname.
+   It might have been better to try /tmp unless told otherwise,
+   but on the other hand, it might have not, and having all the
+   temp files together makes debugging easier. */
 
 void open_input_output(void)
 {
@@ -164,19 +121,26 @@ void open_input_output(void)
 	if(inputname && !outputname && !runopts.stdout)
 		outputname = resuffix(inputname, ".txt", ".ps");
 
-	if(outputname) {
-		if(!(output = fopen(outputname, "w")))
+	if(runopts.skipfrem) {
+		if(!output)
+			output = stdout;
+		else if(!(output = fopen(outputname, "w")))
 			die("Cannot open %s: %m\n", outputname);
-	} else if(runopts.skipfrem) {
-		/* no psfrem, no need to bother with temp files */
-		output = stdout;
 	} else {
-		if(!tmpoutname)
-			tmpoutname = preptemplate("u2ps.XXXXXXXX.ps");
-		if(!(output = fmkstemps(tmpoutname, 3)))
-			die("Cannot create temporary file: %m\n");
+		if(!outputname) {
+			if(!tmpoutname)
+				tmpoutname = preptemplate("u2ps.XXXXXXXX.ps");
+			if(!(output = fmkstemps(tmpoutname, 3)))
+				die("Cannot create temporary file: %m\n");
+		} else {
+			tmpoutname = resuffix(outputname, ".ps", ".tmp.ps");
+			if(!(output = fopen(tmpoutname, "w")))
+				die("Cannot create %s: %m\n", tmpoutname);
+		}
 	}
 }
+
+/* Got to flush buffers before letting psfrem work on the files. */
 
 void close_input_output(void)
 {
@@ -184,11 +148,30 @@ void close_input_output(void)
 	fclose(output);
 }
 
-/* Running psfrem is the very last thing u2ps does, so we go
-   for a kind of tail-call optimization here and exec psfrem
-   instead of forking and waiting. */
+/* With psfrem there is always tmpoutname which should be removed
+   afterwards, so it's fork-wait and then unlink.
 
-int exec_psfrem(void)
+   In case of errors, we leave all temp files as is. */
+
+int spawn(char *const argv[])
+{
+	pid_t pid;
+	int status;
+
+	pid = fork();
+	if(pid < 0)
+		die("Cannot fork: %m\n");
+	if(!pid) {
+		execvp(*argv, argv);
+		die("Can't execute %s: %m\n", *argv);
+	} else {
+		if(waitpid(pid, &status, 0) < 0)
+			die("wait failed: %m\n");
+		return status;
+	}
+}
+
+int run_psfrem(void)
 {
 	char** psfrem = malloc((passnum + 10)*sizeof(char*));
 	char** p = psfrem;
@@ -208,18 +191,19 @@ int exec_psfrem(void)
 
 	if(outputname) {
 		*p++ = "--";
+		*p++ = tmpoutname;
 		*p++ = outputname;
 	} else {
-		*p++ = "-o";
 		*p++ = "--";
 		*p++ = tmpoutname;
+		/* psfrem dumps output to stdout */
 	}
 
 	*p++ = NULL;
 
-	execvp(*psfrem, psfrem);
+	spawn(psfrem);
 
-	die("Can't execute %s: %m\n", *psfrem);
+	unlink(tmpoutname);
 
-	return -1;
+	return 0;
 }
