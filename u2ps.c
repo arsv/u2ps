@@ -184,7 +184,7 @@ int run_psfrem(void)
 		*p++ = "-r";
 	if(runopts.embedstdfonts)
 		*p++ = "-A";
-	if(runopts.skipunlink)
+	if(runopts.keeptemp)
 		*p++ = "-k";
 	*p++ = "-I" BASE;
 	if(q) while(*q) *p++ = *q++;
@@ -203,7 +203,8 @@ int run_psfrem(void)
 
 	spawn(psfrem);
 
-	unlink(tmpoutname);
+	if(!runopts.keeptemp)
+		unlink(tmpoutname);
 
 	return 0;
 }

@@ -11,6 +11,7 @@
 extern char* inputname;
 extern char* outputname;
 extern char* statsname;
+extern int keeptemp;
 
 extern struct dynlist passopt;
 extern struct dynlist excludefonts;
@@ -31,7 +32,7 @@ int main(int argc, char** argv)
 
 	filter_embed(outputname, inputname, statsname);
 
-	if(statsname)
+	if(statsname && !keeptemp)
 		unlink(statsname);
 
 	return 0;

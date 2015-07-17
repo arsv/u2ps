@@ -52,7 +52,7 @@ extern struct runopts {
 	bool skipnotdef;
 	bool skipfrem;
 	bool stdout;
-	bool skipunlink;
+	bool keeptemp;
 } runopts;
 
 extern struct pagelayout {

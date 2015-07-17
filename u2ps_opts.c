@@ -133,6 +133,7 @@ struct option {
 	{ 'A', "all-fonts",	BOOL,	&runopts.embedstdfonts },
 	{ '-', "no-notdef",	BOOL,	&runopts.skipnotdef },
 	{ 'R', "no-resources",	BOOL,	&runopts.skipfrem },
+	{ 'k', "keep",		BOOL,	&runopts.keeptemp },
 	{ 'd', NULL, 		PASS,	add_passopt },
 	{ 'I', NULL,		PASS,	add_passopt },
 	{ 'v', "verbose",	BOOL,	&verbose },
