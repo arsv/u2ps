@@ -17,23 +17,29 @@ static struct dynlist resources;
    of inputname into outputname, adding resources, and/or
    the contents of statsname which is reduce stage output.
 
-   Required and provided resources are inferred from DSC comments
-   in the input stream and the resources themselves.
-
    GS include path (libpath, -Idir options) are used to locate
    embeddable resource files. */
 
-static int good_place_for_stats(char* line, int linenum);
 static void include_resource(char* restag, char* fromfile, int fromline);
 static void mark_resource(char* restag, char* fromfile, int fromline);
 static void include_stats(char* statsname);
+
+/* The main loop handles IncludeResource directives, tracks resources
+   already present in the file, and decides where to put stats.
+
+   In a DSC-sectioned document, stats go at the top of the Prolog section.
+   The document may not be DSC-sectioned however, or may lack Prolog for some
+   reason, in which case we react to comments that should definitely come after
+   the included resources. */
 
 void filter_embed(char* outputname, char* inputname, char* statsname)
 {
 	FILE* input;
 	char line[BUF];
 
+	int isdsc;
 	int inputline = 0;
+	int statsline = 0;
 	int inres = 0;
 	int contline = 0;
 	char* rest;
@@ -48,15 +54,23 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 
 	while(fgets(line, BUF, input))
 	{
+		if(!inputline)
+			isdsc = prefixed(line, "%!") ? 1 : 0;
 		if(!contline)
 			inputline++;
 		else			/* If we're still printing out a line that happened to be   */
 			goto print;	/* longer than BUF, skip all checks and just print it.      */
 		
-		if(statsname && good_place_for_stats(line, inputline)) {
-			include_stats(statsname);
-			statsname = NULL;
-		}
+		if(!statsname)
+			; /* nothing to include, or included already */
+		else if(inputline == 1 && !isdsc)
+			statsline = inputline;
+		else if(prefixed(line, "%%BeginProlog"))
+			statsline = inputline + 1;
+		else if(prefixed(line, "%%Begin") || prefixed(line, "%%Page:"))
+			statsline = inputline;
+		if(statsname && inputline == statsline)
+			include_stats(statsname), statsname = NULL;
 
 		if((rest = prefixed(line, "%%BeginResource:"))) {
 			mark_resource(rest, inputname, inputline);
@@ -76,29 +90,10 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 	}
 }
 
-/* Where should we dump reduced resources?
-
-   The natural position seems to be "after other resources but before the code".
-   In an DSC-sectioned document, that's before prolog or lacking that, before
-   the first page. In non-DSC-conforming document, we cannot take chances and
-   must do it before the first line.
-
-   Only the first positive return counts; filter_embed takes care not to embed
-   reduced resources twice. */
-
-int good_place_for_stats(char* line, int linenum)
-{
-	if(linenum == 1 && (line[0] != '%' || line[1] != '!'))
-		return 1;
-
-	if(prefixed(line, "%%BeginProlog")
-	|| prefixed(line, "%%Page")
-	|| prefixed(line, "%%BeginSetup")
-	|| prefixed(line, "%%BeginPageSetup"))
-		return 1;
-
-	return 0;
-}
+/* There are three very similar file-filtering loop here, one in filter_embed,
+   one here and yet another one in include_resfile. They do almost the same
+   thing, with slight variations over which DSC directives are handled,
+   and factoring out the common part only complicates the code. */
 
 void include_stats(char* statsname)
 {
