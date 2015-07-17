@@ -148,7 +148,6 @@ void new_file(void)
 	psline("%%%%Creator: u2ps\n");
 	psline("%%%%CreationDate: %s", ctime(&now)); /* ctime output includes \n! */
 	psline("%%%%EndComments\n");
-	psline("\n");
 
 	psline("%%%%BeginProlog\n");
 	psline("%%%%IncludeResource: font notdef\n");
@@ -164,7 +163,6 @@ void new_file(void)
 		psline("%%%%IncludeResource: fontset %s\n", fonts.line.name);
 	psline("%%%%IncludeResource: fontset Times-Roman\n");
 	psline("%%%%EndProlog\n");
-	psnl(1);
 	
 	put_global_setup();
 

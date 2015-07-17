@@ -9,6 +9,7 @@ extern void psline(const char* line, ...);
 
 void put_global_setup(void)
 {
+	psline("%%%%BeginSetup\n");
 	psline("/fontset/ProcSet findresource { def } forall\n");
 	psline("/uniterm/ProcSet findresource { def } forall\n");
 	psnl(1);
@@ -70,5 +71,5 @@ void put_global_setup(void)
 	psnl(1);
 
 	psline("<< /PageSize [ %i %i ] >> setpagedevice\n", pagelayout.pw, pagelayout.ph);
-	psnl(1);
+	psline("%%%%EndSetup\n");
 }
