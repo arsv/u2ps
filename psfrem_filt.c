@@ -104,11 +104,25 @@ void include_stats(char* statsname)
 {
 	FILE* stats = fopen(statsname, "r");
 	char line[BUF];
+	char* rest;
+	int inputline = 0;
+	int contline = 0;
 
 	if(!stats)
 		die("Cannot open %s: %m\n", statsname);
-	while(fgets(line, BUF, stats))
+	while(fgets(line, BUF, stats)) {
+		if(!contline) {
+			inputline++;
+			if((rest = prefixed(line, "%%BeginResource:"))) {
+				mark_resource(rest, statsname, inputline);
+			} else if((rest = prefixed(line, "%%IncludeResource:"))) {
+				include_resource(rest, statsname, inputline);
+				continue;
+			}
+		}
 		fputs(line, output);
+		contline = !endswith(line, '\n');
+	}
 
 	fclose(stats);
 }
@@ -148,12 +162,17 @@ int insert_resource(const char* category, const char* resource)
 	return known;
 }
 
+/* restag points to a line that will be printed, and split_resource_name
+   modifies its argument in place, so got to make a copy here. */
+
 void mark_resource(char* restag, char* file, int line)
 {
 	char* category;
 	char* resource;
+	char buf[strlen(restag)+1];
+	strcpy(buf, restag);
 
-	if(split_resource_name(restag, &category, &resource))
+	if(split_resource_name(buf, &category, &resource))
 		die("%s:%i: bad resource name %s\n", file, line, restag);
 
 	if(insert_resource(category, resource))
