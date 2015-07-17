@@ -179,29 +179,6 @@ void mark_resource(char* restag, char* file, int line)
 		die("%s:%i: duplicate resource %s %s\n", file, line, category, resource);
 }
 
-/* Category description (that is, resource "category $cat") must be included
-   before any resource "$cat $res", but only once, and not for built-in PS
-   categories like procset and font.
-
-   Most definitions are trivial and could be generated on the fly, *but* gs
-   needs actual files when running without embedded resources, and who knows,
-   maybe non-trivial category definitions are possible as well. */
-
-int need_category(const char* category)
-{
-	static const char* innate[] = { "font", "procset", "category", "encoding", NULL };
-	const char** p;
-
-	for(p = innate; *p; p++)
-		if(!strcmp(*p, category))
-			return 0;
-
-	char* resname = strecat("category ", category, NULL);
-	int known = dinlist(&resources, resname);
-	free(resname);
-	return !known;
-}
-
 void include_cat_res(char* category, char* resource, char* fromfile, int fromline);
 void include_resfile(const char* category, const char* resource, FILE* resfile);
 
