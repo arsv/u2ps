@@ -4,6 +4,17 @@
 #include "config.h"
 #include "warn.h"
 
+/* The PostScript writer.
+
+   The term part wants to output (utf-8) characters one by one,
+   and non-string commands as well, without the need to care about
+   ( and )u placement.
+
+   The commands themselves should be spaced, possibly wrapping
+   the (output) lines to keep them reasonably short.
+   A lot of ansi formatting can result in very very long ps output
+   even for a single input line. */
+
 extern FILE* output;
 
 enum psmode { NOTHING = 0, COMMAND, UNISTRING, BADSTRING } state = NOTHING;
@@ -79,6 +90,9 @@ void pscmd(const char* fmt, ...)
 	if(nl) psnl(0);
 }
 
+/* Valid utf-8 is written as is, but invalid input gets converted into ????
+   by u2ps code to space the ps part from dealing with garbage. */
+
 void psbad(int len)
 {
 	static char badstring[] = "??????";
@@ -93,6 +107,8 @@ void psuni(char* ptr, int len)
 		psputs("\\");
 	pswrite(ptr, len);
 }
+
+/* This is only used for stuff like title, not for the text. */
 
 void psstr(const char* str)
 {
