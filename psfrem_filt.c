@@ -149,7 +149,7 @@ int split_resource_name(char* resname, char** catptr, char** resptr)
 	return 0;
 }
 
-int insert_resource(const char* category, const char* resource)
+int push_resource(const char* category, const char* resource)
 {
 	char* resname = strecat(category, " ", resource, NULL);
 	int known;
@@ -175,7 +175,7 @@ void mark_resource(char* restag, char* file, int line)
 	if(split_resource_name(buf, &category, &resource))
 		die("%s:%i: bad resource name %s\n", file, line, restag);
 
-	if(insert_resource(category, resource))
+	if(push_resource(category, resource))
 		die("%s:%i: duplicate resource %s %s\n", file, line, category, resource);
 }
 
@@ -190,7 +190,7 @@ void include_resource(char* restag, char* fromfile, int fromline)
 	if(split_resource_name(restag, &category, &resource))
 		die("%s:%i: bad resource name %s\n", fromfile, fromline, restag);
 
-	if(insert_resource(category, resource))
+	if(push_resource(category, resource))
 		return;
 
 	include_cat_res(category, resource, fromfile, fromline);
