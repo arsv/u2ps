@@ -146,7 +146,7 @@ void new_file(void)
 		psline("%%%%Title: %s\n", genopts.title);
 	psline("%%%%Pages: (atend)\n");
 	psline("%%%%Creator: u2ps\n");
-	psline("%%%%CreationDate: %s\n", ctime(&now));
+	psline("%%%%CreationDate: %s", ctime(&now)); /* ctime output includes \n! */
 	psline("%%%%EndComments\n");
 	psline("\n");
 
