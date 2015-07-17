@@ -133,7 +133,7 @@ void open_input_output(void)
 			if(!(output = fmkstemps(tmpoutname, 3)))
 				die("Cannot create temporary file: %m\n");
 		} else {
-			tmpoutname = resuffix(outputname, ".ps", ".tmp.ps");
+			tmpoutname = resuffix(outputname, ".ps", ".tps");
 			if(!(output = fopen(tmpoutname, "w")))
 				die("Cannot create %s: %m\n", tmpoutname);
 		}
