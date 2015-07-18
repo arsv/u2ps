@@ -4,6 +4,7 @@ u2ps is text to postscript converter similar to a2ps,
 with emphasis on Unicode support.
 
 Key features:
+
 * wide-range unicode support via font sets (see rxvt-unicode);
   u2ps does not depend on a single font to provide the whole range
 * unicode support implemented in PostScript
@@ -14,7 +15,9 @@ Key features:
 
 Installation
 ~~~~~~~~~~~~
-To run u2ps, perl >= 5.6 and ghostscript are needed.
+Common C library, make and cc are needed to build u2ps.
+If you want font and resource reduction (you do), ghostscript must
+be available at runtime.
 
 	./configure --prefix=...
 	make
@@ -28,10 +31,10 @@ See man page and text files in doc/ directory.
 
 Github note
 ~~~~~~~~~~~
-This is git-controlled and somewhat modernized version
-of my old project from Berlios.
-It has been neglected for years and I'm now trying to revive it.
-Some features may be missing, some present but not documented.
+This is a modernized version of my old project from Berlios,
+now rewritten in C, with a lot of incompatible changes.
+
+Check perl branch for the original code if you need it.
 
 
 License
