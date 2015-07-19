@@ -98,6 +98,6 @@ void psuni(const char* string, int len);
 void psbad(int len);
 void psstr(const char* string);
 
-/* u2ps_temp.c */
+/* u2ps_file.c */
 char* preptemplate(const char* template);
 FILE* fmkstemps(char* template, int suffixlen);
