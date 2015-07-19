@@ -5,6 +5,7 @@
 #include <sys/wait.h>
 
 #include "config.h"
+#include "resuffix.h"
 #include "warn.h"
 #include "u2ps.h"
 

@@ -101,4 +101,3 @@ void psstr(const char* string);
 /* u2ps_temp.c */
 char* preptemplate(const char* template);
 FILE* fmkstemps(char* template, int suffixlen);
-char* resuffix(const char* name, const char* oldsuff, const char* newsuff);
