@@ -51,10 +51,9 @@
 % actually sets precision.
 %
 % (s)printf uses normal postfix argument order:
-%	(world) (cruel) (Goodbye) (%s, %s %s!) printf
-% r(s)printf processes format sequences backwards, allowing more
-% intuitive
-%	(Goodbye) (cruel) (world) (%s, %s %s!) rprintf
+%	(world) (Hello) (%s %s!) printf
+% r(s)printf processes format sequences backwards, allowing for a more intuitive
+%	(Hello) (world) (%s %s!) rprintf
 %
 % Arguments can be addressed explicitly, using %N$a or %N!a form.
 % Indexes are in postfix order even for r(s)printf:
