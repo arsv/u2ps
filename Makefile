@@ -16,5 +16,20 @@ ttf2pt42: ttf2pt42.o warn.o
 .c.o:
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+install:
+	mkdir -p $(DESTDIR)$(bindir)
+	install -m 0755 u2ps $(DESTDIR)$(bindir)/u2ps
+	install -m 0755 psfrem $(DESTDIR)$(bindir)/psfrem
+	mkdir -p $(DESTDIR)$(basedir)
+	cp -r ps/* $(DESTDIR)$(basedir)/
+	mkdir -p $(DESTDIR)$(man1dir)
+	install -m 0644 u2ps.1 $(DESTDIR)$(man1dir)/u2ps.1
+
+install-ttf2pt42:
+	install -m 0755 ttf2pt42.x $(DESTDIR)$(bindir)/ttf2pt42
+
 clean:
 	rm -f *.o
+
+distclean: clean
+	rm -f u2ps psfrem ttf2pt42 tags

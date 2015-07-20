@@ -23,6 +23,9 @@ be available at runtime.
 	make
 	make install
 
+For hacking/debugging, run "./configure devel" instead, the resulting
+executable will work right from the source directory.
+
 
 Documentation
 ~~~~~~~~~~~~~

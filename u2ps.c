@@ -180,7 +180,7 @@ int run_psfrem(void)
 
 	if(!psfrem) die("malloc: %m\n");
 
-	*p++ = PATH "/psfrem";
+	*p++ = PATH "psfrem";
 	if(!runopts.noreduce)
 		*p++ = "-r";
 	if(runopts.allfonts)

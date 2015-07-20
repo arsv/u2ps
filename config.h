@@ -2,7 +2,7 @@
 #define GS "gs"
 
 /* Path to psfrem executable, used in u2ps */
-#define PATH "."
+#define PATH "./"
 
 /* Path to postscript library directory; psfrem and ttf2pt42 will use -I$BASE
    when running $GS above */

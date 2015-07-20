@@ -1,6 +1,6 @@
 #!/bin/sh
 
-unset prefix bindir datadir mandir man1dir basedir perl gs
+unset prefix bindir datadir mandir man1dir basedir gs psfremdir
 
 help() {
 cat << EOF
@@ -13,30 +13,15 @@ Options:
 	--basedir=/path		base directory for PostScript files [\$datadir/u2ps]
 	--mandir=/path		base directory for manual pages [\$datadir/man]
 	--man1dir=/path		directory for manual section 1 pages [\$mandir/man1]
-	--with-perl=		perl path for #! in scripts [/usr/bin/perl]
 	--with-gs=...		gs command to use [gs]
 
 EOF
 exit
 }
 
-log="config.log"
-
-checking() { echo -n "Checking $@... "; echo "Checking $@" >> $log; }
-run() { echo "$@" >> $log; "$@" >> $log 2>&1; }
-
-result() {
-	if [ $? == 0 ]; then
-		echo "$1"
-		echo "Result: $1" >> $log
-		echo >> $log
-	else
-		echo "Failed: $ret" >> $log
-		echo "$2"
-		if [ "x$3" != "x" ]; then echo "WARNING: $3"; fi
-	fi
-	echo >> $log
-}
+# Use environment for default values
+cc=${CC:-gcc}
+cflags=${CFLAGS:--O}
 
 for arg; do
 	arg="$1"; shift;
@@ -50,26 +35,31 @@ for arg; do
 			val=""
 			;;
 	esac
+	# strip leading --, equating "--help" and "help"
+	arg=`echo "$arg" | sed -e 's/^--//'`
+
 	case "$arg" in
-		--help) help ;;
-		--prefix) prefix=$val ;;
-		--datadir) datadir=$val ;;
-		--basedir) basedir=$val ;;
-		--mandir) mandir=$val ;;
-		--man1dir) man1dir=$val ;;
-		--with-perl) perl=$val ;;
-		--with-gs) gs=$val ;;
+		help) help ;;
+		prefix) prefix=$val ;;
+		datadir) datadir=$val ;;
+		basedir) basedir=$val ;;
+		mandir) mandir=$val ;;
+		man1dir) man1dir=$val ;;
+		with-perl) perl=$val ;;
+		with-gs) gs=$val ;;
+		cc) cc="$val" ;;
+		cflags) cflags="$val" ;;
+		devel) cflags="-Wall -g"; basedir="ps"; psfremdir="./" ;;
+		target)
+			echo "use cc=\${target-compiler} for cross-compilation"
+			exit 1
+			;;
 		*)
 			echo "unexpected parameter $arg"
 			exit 1
 			;;
 	esac
 done
-
-# Default values for commands
-perl=${perl:-`which perl`}
-perl=${perl:-/usr/bin/perl}
-gs=${gs:-gs}
 
 # Default paths
 prefix=${prefix:-/usr}
@@ -79,47 +69,38 @@ basedir=${basedir:-$datadir/u2ps}
 mandir=${mandir:-$datadir/man}
 man1dir=${man1dir:-$mandir/man1}
 
+gs=${gs:-gs}
 
-# The checks won't change anything, but it may be useful
-# to warn the user if something does not look right
+# This check won't change anything, but it may be useful
+# to warn the user if the value is clearly bogus.
 
-echo -n > $log
+if echo quit | $gs -sDEVICE=nullpage >/dev/null 2>&1; then
+	echo "GhostScript seems to be working well"
+else
+	echo "WARNING: cannot run $gs"
+	echo "WARNING: resource reduction will not work without gs"
+fi
 
-checking "if $perl runs"
-run $perl -e 'exit(0)'
-result "ok, it does" "no" "perl is absolutely necessary"
-
-checking "for Encode"
-run perl -MEncode -e "exit(0);"
-result "found" "not found" "u2ps won't run without Encode"
-
-checking "for Text::CharWidth"
-run perl -MText::CharWidth -e "exit(0);"
-result "found" "not found" "u2ps won't run without Text::Charwidth"
-
-checking "if $gs runs"
-echo "quit" > conftest.ps
-run $gs -dQUIET -dBATCH -sDEVICE=nullpage conftest.ps
-result "ok, it does" "no" "ghostscript is necessary to use u2ps"
-rm conftest.ps
-
-echo "Updating Makefile"
+echo "Updating configuration"
 
 sed -i \
-	-e "/^perl =/s#=.*#= $perl#"\
-	-e "/^gs =/s#=.*#= $gs#"\
+	-e "/^CC =/s#=.*#= $cc#"\
+	-e "/^CFLAGS =/s#=.*#= $cflags#"\
 	-e "/^bindir =/s#=.*#= $bindir#"\
 	-e "/^basedir =/s#=.*#= $basedir#"\
 	-e "/^man1dir =/s#=.*#= $man1dir#"\
-	Makefile
+	-e "/^gs =/s#=.*#= $gs#"\
+	config.mk
+
+sed -i \
+	-e "/^#define GS/s#\".*#\"$gs\"#"\
+	-e "/^#define PATH/s#\".*#\"$psfremdir\"#"\
+	-e "/^#define BASE/s#\".*#\"$basedir\"#"\
+	config.h
 
 echo
-echo "Configuration updated. Check the values below, then run make."
-echo
-echo "perl path: $perl"
-echo "ghostscript command: $gs"
-echo
 echo "u2ps executable dir: $bindir"
-echo "u2ps auxiliary files dir: $basedir"
+echo "u2ps postscript dir: $basedir"
 echo "man section 1 path: $man1dir"
+echo "ghostscript command: $gs"
 echo 
