@@ -15,7 +15,5 @@ Or if you want gv:
 
 This way you will be editing master copies and any changes made
 will be effective immediately.
-The only exception is ps/setup.ps, that is the part that is embedded
-in the output document.
 
 For any postscript-related debugging, check ps/ProcSet/printf.

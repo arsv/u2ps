@@ -7,7 +7,7 @@ Cursor movement and similar things are not supported.
 
 CSI m sequences
 ~~~~~~~~~~~~~~~
-Terminal state is tracked in the perl part only, with ps output getting simple direct
+Terminal state is tracked in the c part only, with ps output getting simple direct
 commands (set-font, set-color and so on). This allows keeping support for rarely-used
 attributes without bloating the output.
 
@@ -21,7 +21,7 @@ Unlike rxvt however, u2ps has a dedicated bit for 6m. Because why not.
 
 CSI 2m (faint/half-bright), 7m (reverse) and 8m (invisible) change current neutral color,
 and only have effect when no color has been set explicitly via 31-38m or similar commands.
-Thus, "invisible-red" text will look red and be quite visible.
+Thus, "invisible-red" text will look red and quite visible.
 No idea whether this is correct, most terminals do not support these attributes anyway.
 
 CSI 2Nm undoes respective CSI Nm (i.e. 5=blink / 25=no-blink, 7=reverse / 27=no-reverse).
