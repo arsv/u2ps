@@ -31,7 +31,7 @@ I suspect this may be wrong and will probably cause issues with fonts other than
 but at least it works with FreeMono which is the default font for u2ps anyway.
 Nimbus Courier/Times substitutes from gs package lack these glyphs altogether.
 
-In case this has to be fixed on-site, it's all in ps/Unidata/Agl,
+In case this has to be fixed on-site, it's all in res/Unidata/Agl,
 and there is no simple way for changing it on per-font basis short of editing the font atm.
 
 Rerefence:

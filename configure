@@ -49,7 +49,7 @@ for arg; do
 		with-gs) gs=$val ;;
 		cc) cc="$val" ;;
 		cflags) cflags="$val" ;;
-		devel) cflags="-Wall -g"; basedir="ps"; psfremdir="./" ;;
+		devel) cflags="-Wall -g"; basedir="res"; psfremdir="./" ;;
 		target)
 			echo "use cc=\${target-compiler} for cross-compilation"
 			exit 1

@@ -6,14 +6,14 @@ When editing or debugging resources, it may be handy to avoid embedding them.
 Assuming you're in the source directory:
 
 	./u2ps -E test.txt
-	gs -Ips test.ps
+	gs -Ires test.ps
 
 Or if you want gv:
 
 	./u2ps -E test.txt
-	gv -arguments=-Ips test.ps
+	gv -arguments=-Ires test.ps
 
 This way you will be editing master copies and any changes made
 will be effective immediately.
 
-For any postscript-related debugging, check ps/ProcSet/printf.
+For any postscript-related debugging, check res/ProcSet/printf.

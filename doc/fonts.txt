@@ -7,8 +7,8 @@ or maybe some fonts for unusual unicode ranges.
 
 Because of the way gs works, this is relatively easy to do:
 
-1. place font files into /usr/share/u2ps/ps/fonts directory.
-2. add font to /usr/share/u2ps/ps/Fontmap file
+1. place font files into /usr/share/u2ps/fonts directory.
+2. add font to /usr/share/u2ps/Fontmap file
 
 Fontmap syntax is described in that file. For most fonts,
 it should be something like this:
@@ -23,7 +23,7 @@ Skip #1 and add full path to Fontmap, it should work right away.
 Editing fontsets
 ~~~~~~~~~~~~~~~~
 For u2ps to actually use a new font, you will have to edit fontsets
-as well. Check /usr/share/u2ps/ps/FontSet/* files for syntax and structure.
+as well. Check /usr/share/u2ps/FontSet/* files for syntax and structure.
 Generally you need to add a key to the first dictionary:
 
 	<<

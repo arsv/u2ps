@@ -6,7 +6,7 @@
 
 /* Path to postscript library directory; psfrem and ttf2pt42 will use -I$BASE
    when running $GS above */
-#define BASE "ps"
+#define BASE "res"
 
 /* Input will be read in block this large: */
 #define CHUNKLEN 1024
