@@ -4,36 +4,21 @@
 u2ps \- unicode text to PostScript converter
 '''
 .SH SYNOPSIS
-u2ps [\fIoptions\fR] \fIinput-file\fR [\fIoutput-file\fR]
+u2ps [\fIoptions\fR] [\fIinput-file\fR [\fIoutput-file\fR]]
 '''
 .SH DESCRIPTION
 \fBu2ps\fR produces printable PostScript document from supplied text,
 handling arbitrary Unicode characters.
 '''
 .SH USAGE
-Input file name must be supplied. Output file name is optional,
-with the default value \fIinput-file\fR.ps.
-Input file name may be "-", in which case stdin will be used.
+Typically u2ps should be run with \fIinputname\fR but without \fIoutputname\fR,
+in which case the output will be written to \fIinputname\fR.ps.
 
-Output file is generated in several passes, and thus can not be piped.
-
-Short options may be squashed: \fB-Hiw\fR equals \fB-H -i -w\fR.
-Both \fB--\fIoption\fB=\fIvalue\fR and \fB--\fIoption\fR \fIvalue\fR forms
-can be used. Use \fB--\fR to terminate option processing.
-Whenever argument is required for a long option, same goes for the short one.
-'''
-.SS Input-related options
-.IP "\fB-e\fR / \fB--encoding=\fIencoding\fR" 4
-Input file encoding. May be anything \fBiconv(3)\fR library understands,
-run 'iconv --list' to get full list. Defaults to current locale encoding.
-.IP "\fB--opt-encoding=\fIname\fR" 4
-Options encoding (for --header/--footer) [utf-8]
+.SS General options
 .IP "\fB-T\fR/\fB--tab=\fIn\fR" 4
-Tab size.
+Spaces per tab.
 .IP "\fB-a\fR/\fB--no-ansi\fR" 4
 Do not interpret ANSI terminal control sequences.
-'''
-.SS Paper setup
 .IP "\fB-P\fR/\fB--paper=name\fR" 4
 Paper name, or size in mm (WxH)
 .IP "\fB-M\fR/\fB--margins=values\fR" 4
@@ -42,6 +27,16 @@ Note the margins are for the text area only. Headings, line numbers and
 wrap marks will be printed outside of specified region.
 .IP "\fB-r\fR/\fB--landscape\fR" 4
 Rotate to landscape orientation
+.IP "\fB-w\fR/\fB--wrap\fR" 4
+Wrap long lines
+.IP "\fB-W\fR/\fB--wrap-mark\fR" 4
+Wrap long lines and set wrap marks
+.IP "\fB-i\fR/\fB--inverse\fR" 4
+Inverse (white text on black background) mode. Does not change other
+colors, so red will still be red. Use this to make the page
+look as close to a real terminal as possible. Can be useful for 
+making "terminal screenshots" or rendering ASCII art, but hardly
+suitable for printing.
 '''
 .SS Font size selection
 Use only one of these options. Paper size will be used to determine the other two.
@@ -55,28 +50,18 @@ Lines per page
 .SS Fonts setup
 Note unicode printing is done with fontsets, not regular PostScript fonts.
 Check /usr/share/u2ps/ps/FontSet for a list.
-.IP "\fB-f\fR/\fB--font-set=\fIname\fR" 4
+.IP "\fB-f\fR/\fB--font=\fIname\fR" 4
 Primary font set [FreeMono]
-.IP "\fB--aux-font-set=\fIname\fR" 4
+.IP "\fB--head-font=\fIname\fR" 4
 Auxilliary font set [Times-Roman]
-.IP "\fB--lnum-font=\fIname\fR" 4
+.IP "\fB--line-font=\fIname\fR" 4
 Font to use for line numbers [Times-Roman]
 .IP "\fB--head-font-size=\fIn\fR" 4
 Headings font size (pt)
-.IP "\fB--lnum-font-size=\fIn\fB" 4
+.IP "\fB--line-font-size=\fIn\fB" 4
 Line numbers font size (pt)
 '''
 .SS Output control options:
-.IP "\fB-w\fR/\fB--wrap\fR" 4
-Wrap long lines
-.IP "\fB-W\fR/\fB--wrap-mark\fR" 4
-Wrap long lines and set wrap marks
-.IP "\fB-i\fR/\fB--inverse\fR" 4
-Inverse (white text on black background) mode. Does not change other
-colors, so red will still be red. Use this to make the page
-look as close to a real terminal as possible. Can be useful for 
-making "terminal screenshots" or rendering ASCII art, but hardly
-suitable for printing.
 .IP "\fB-l\fR/\fB--numbers\fR" 4
 Print line numbers
 .IP "\fB--start-line=\fIn\fR" 4
@@ -97,22 +82,14 @@ Page headings: centered, left and right aligned.
 Page footers.
 '''
 .SS Postscript options
-.IP "\fB-F\fR/\fB--no-fonts\fR" 4
-Do not embed fonts
-.IP "\fB-A\fR/\fB--all-fonts\fR" 4
-Embed all fonts, including standard postscript 35
-.IP "\fB--no-notdef\fR" 4
-Do not automatically embed notdef font
-.IP "\fB-E\fR/\fB--no-resources\fR"
-Do not embed resources / do not post-process output file (see man page on how to use this).
-'''
-.SS Misc options
+.IP "\fB-R\fR/\fB--noreduce\fR" 4
+Do not reduce resources, embed everything as is (see \fB-r\fR in \fBpsfrem\fR(1)).
+.IP "\fB-A\fR/\fB--allfonts\fR" 4
+Embed/reduce all fonts, including standard postscript 35
+.IP "\fB-E\fR/\fB--noembed\fR"
+Do not embed resources; see below on how to use the output.
 .IP "\fB--keep\fR" 4
 Do not delete temporary files
-.IP "\fB-v\fR/\fB--verbose\fR" 4
-Be verbose
-.IP "\fB-G\fR/\fB--gs=\fIpath\fR" 4
-Ghostscript command
 '''
 .SH NOTES
 .SS Font reduction
@@ -161,7 +138,7 @@ When embedding fonts, u2ps assumes you have rights to do so. Not checks are perf
 and no warnings are issues even for protected fonts.
 '''
 .SH AUTHOR
-Written by Alex Suykov \fT<alex.suykov@gmail>\fR
+Written by Alex Suykov \fT<alex.suykov@gmail.com>\fR
 .br
 Feel free to send bug reports and suggestions.
 '''
