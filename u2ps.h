@@ -47,10 +47,9 @@ extern struct headings {
 } headings;
 
 extern struct runopts {
-	bool skipfonts;
-	bool embedstdfonts;
-	bool skipnotdef;
 	bool skipfrem;
+	bool noreduce;
+	bool allfonts;
 	bool stdout;
 	bool keeptemp;
 } runopts;

@@ -123,7 +123,7 @@ void open_input_output(void)
 		outputname = resuffix(inputname, ".txt", ".ps");
 
 	if(runopts.skipfrem) {
-		if(!output)
+		if(!outputname)
 			output = stdout;
 		else if(!(output = fopen(outputname, "w")))
 			die("Cannot open %s: %m\n", outputname);
@@ -181,9 +181,9 @@ int run_psfrem(void)
 	if(!psfrem) die("malloc: %m\n");
 
 	*p++ = PATH "/psfrem";
-	if(!runopts.skipfonts)
+	if(!runopts.noreduce)
 		*p++ = "-r";
-	if(runopts.embedstdfonts)
+	if(runopts.allfonts)
 		*p++ = "-A";
 	if(runopts.keeptemp)
 		*p++ = "-k";
