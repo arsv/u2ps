@@ -465,7 +465,9 @@
 } def
 
 /fmt-lit-str {
-	%(stack1:\n) print stack (end\n) print
+	% First, measure the required output string length.
+	% That's equal to the number of characters in the source string,
+	% except for stuff that needs escapes (\n, \x8D and the likes).
 	dup 0 exch { {
 		dup  9 eq { pop 1 add exit } if
 		dup 10 eq { pop 1 add exit } if
@@ -478,7 +480,7 @@
 	} loop } forall
 	1 index length add 2 add
 	string								% src dst
-	%(stack2:\n) print stack (end\n) print
+	% With the output buffer allocated, do conver the string
 	exch 1 exch { {		% dst p c
 		dup  9 eq { pop 1 index 1 index (\\t) putinterval 2 add exit } if
 		dup 10 eq { pop 1 index 1 index (\\n) putinterval 2 add exit } if
