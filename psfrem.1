@@ -1,0 +1,62 @@
+.TH psfrem 1
+'''
+.SH NAME
+psfrem \- postscript font and resource embedding utility.
+'''
+.SH SYNOPSIS
+psfrem [\fIoptions\fR] \fIinput-file\fR [\fIoutput-file\fR]
+'''
+.SH DESCRIPTION
+\fBpsfrem\fR runs supplied PostScript document through Ghostscript,
+gathering font usage information, then dumps loaded font data from
+Ghostscript memory and embeds it into the source file. The resulting
+document is expected to be self-containing, with no dependencies on
+the fonts installed in a particular postscript device.
+
+When embedding fonts, \fBpsfrem\fR attempts to modify them, leaving
+only the glyphs used in the document, thus reducing the font size.
+
+\fBpsfrem\fR also attempts to embed non-font resources in place of
+%%IncludeResource directives.
+'''
+.SH USAGE
+Input file name must be supplied, and it must be a real seekable file.
+The output will be written to the specified file, or to stdout.
+'''
+.IP "\fB-I\fIdir\fR" 4
+Look for resources to embed in \fIdir\fR. This option may be specified
+more than once. This option is also passed to \fBgs\fR.
+.IP "\fB-d\fIvar\fR[=\fIval\fR]" 4
+Define PostScript variable \fIname\fR (with value \fIval\fR). This option
+is passed directly to \fBgs\fR(1).
+.IP "\fB-r\fR" 4
+Do reduce/embed fonts. Without this option, just embed resources.
+.IP "\fB-x\fIFont\fR" 4
+Do not dump/embed \fIFont\fR, which must be the PostScript font name
+(something like Times-Roman or FreeMono).
+.IP "\fB-a\fIFont\fR" 4
+Embed \fIFont\fR completely, do not attempt to remove unused glyphs.
+.IP "\fB-A\fR" 4
+Do embed Adobe core fonts. See NOTES below.
+.IP "\fB-k\fR" 4
+Keep temporary files.
+'''
+.SH NOTES
+\fBpsfrem\fR is meant to be used with \fBu2ps\fR(1). It relies heavily
+on the input file being well-formed and well-behaved.
+It may or may not work with arbitrary PostScript input.
+
+\fBpsfrem\fR only looks for resource in directories explicitly specified
+with \fB-I\fR and does not know about standard \fBgs\fR search path.
+If you need to embed anything from /usr/share/ghostscript, pass relevant
+directories with \fB-I\fR.
+
+All PostScript interpreters are assumed to have a bunch of standard fonts
+available (Courier, Times-Roman, Helvetica, Symbol etc), so psfrem does not
+try to embed those. Glyph coverage beyond basic Latin is not guaranteed for
+standard fonts however, so it may be necessary to use \fB-A\fR, forcing the
+fonts available to Ghostscript locally to be embedded instead of relying on
+whatever the target device has got.
+'''
+.SH SEE ALSO
+\fBu2ps\fR(1), \fBgs\fR(1), \fBincluderes\fR(1) from psutils package.
