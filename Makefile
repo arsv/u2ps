@@ -27,7 +27,7 @@ install:
 	install -m 0644 psfrem.1 $(DESTDIR)$(man1dir)/psfrem.1
 
 install-ttf2pt42:
-	install -m 0755 ttf2pt42.x $(DESTDIR)$(bindir)/ttf2pt42
+	install -m 0755 ttf2pt42 $(DESTDIR)$(bindir)/ttf2pt42
 
 clean:
 	rm -f *.o
