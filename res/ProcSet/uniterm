@@ -149,8 +149,6 @@ grestore
 % end-of-line, with a wrap mark
 /w {
 	currentpoint n
-
-	wrap-marks {
 	gsave
 		exch pop term-xr exch moveto
 		asize 0 rmoveto
@@ -159,9 +157,6 @@ grestore
 		asize .25 mul 0 rlineto
 		0 asize .5 mul rlineto stroke
 	grestore
-	} {
-		pop pop
-	} ifelse
 } def
 
 % set font regular

@@ -122,7 +122,7 @@ struct option {
 	{ '-', "line-font",	STRING, &fonts.line.name },
 	{ 'o', "stdout",	BOOL,	&runopts.stdout },
 	{ 'w', "wrap",		BOOL,	&genopts.wrap },
-	{ 'W', "wrap-mark",	BOOL,	&genopts.mark },
+	{ 'm', "mark",		BOOL,	&genopts.mark },
 	{ 'i', "inverse", 	BOOL,	&genopts.inverse },
 	{ 'l', "numbers",	BOOL,	&genopts.linenum },
 	{ '-', "startline",	INT,	&genopts.startline },

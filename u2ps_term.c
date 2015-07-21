@@ -197,7 +197,7 @@ void end_line(enum linebreak soft)
 {
 	if(activeline)
 		end_line_attr();
-	pscmd(soft ? "!w" : "!n");
+	pscmd(soft && genopts.mark ? "!w" : "!n");
 	softcol = 0;
 	if(!soft) activeline = 0;
 }

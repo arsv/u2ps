@@ -59,10 +59,6 @@ void put_global_setup(void)
 	psline("/term-yf term-yb headsep sub asize .8 mul sub def\n");
 	psnl(1);
 
-	if(genopts.wrap)
-		psline("/wrap-marks %s def\n", genopts.mark ? "true" : "false");
-	psnl(1);
-
 	psline("%% base terminal colors\n");
 	psline("/color-fg %s def\n", genopts.inverse ? "16#FFFFFF" : "16#000000");
 	psline("/color-bg %s def\n", genopts.inverse ? "16#000000" : "16#FFFFFF");
