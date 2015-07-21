@@ -24,6 +24,7 @@ install:
 	cp -r ps/* $(DESTDIR)$(basedir)/
 	mkdir -p $(DESTDIR)$(man1dir)
 	install -m 0644 u2ps.1 $(DESTDIR)$(man1dir)/u2ps.1
+	install -m 0644 psfrem.1 $(DESTDIR)$(man1dir)/psfrem.1
 
 install-ttf2pt42:
 	install -m 0755 ttf2pt42.x $(DESTDIR)$(bindir)/ttf2pt42
