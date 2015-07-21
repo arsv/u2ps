@@ -4,21 +4,6 @@
 #include "resuffix.h"
 #include "psfrem.h"
 
-/*
-
-Options:
-	-Idir		pass to gs
-	-dKEY=val	pass to gs
-	-xFont		exclude (do not embed) Font
-	-aFont		include Font completely, without reduction
-	-A		do embed Adobe core fonts
-	-r		reduce fonts (otherwise, just embed resources)
-	-k		keep temporary files
-	-o		output to stdout
-	-c		do not auto-include categories (XXX)
-
-*/
-
 char* inputname;
 char* outputname;
 char* statsname;
