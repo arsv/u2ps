@@ -20,11 +20,11 @@ clean:
 
 pt_%.out: pt_%.ps
 	gs -I../res -sDEVICE=nullpage -dBATCH $< > $@
-	@grep -q FAIL $@ && false || true
+	@grep -q FAIL $@ && (cat $@; rm $@) || true
 
 ct_%.out: ct_%
 	./$< > $@
-	@grep -q FAIL $@ && false || true
+	@grep -q FAIL $@ && (cat $@; rm $@) || true
 
 ct_%.o: ct_%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
