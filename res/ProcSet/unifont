@@ -132,29 +132,49 @@ end
 	glyphshow pop	% TODO stats
 } def
 
-% Well $code is not in currentfont, so got to pull notdef
-% and print a substitution char instead.
+% Well $code is not in currentfont, so got to print notdef instead.
+% The idea is to have resulting text width close to what it would be
+% with the glyph available, at least for monospace fonts.
 %
 % code ->
 
-/ushow.notdef 10 dict def
-
 /ushow.substitute {
-	gsave
-
-	currentfont /ScaleMatrix get 0 get
-	dup ushow.notdef exch .knownget {
-		setfont pop
-	} {
-		dup /notdef findfont exch scalefont dup setfont
-		ushow.notdef 3 1 roll put
-	} ifelse
-
-	ushow.findsubst glyphshow
-	currentpoint grestore moveto
+	ushow.substcode { /notdef glyphshow } repeat
 } def
 
+% Like substitute but only returns the width.
 
+/ushow.substwidth {
+	ushow.substcode /notdef .glyphwidth mul
+} def
+
+/ushow.substcode { {
+	16#0000 16#02FF 1 ushow.rangew	% ASCII stuff and generic Latin 
+	16#0300 16#036F 0 ushow.rangew	% generic combining stuff
+	16#20D0 16#20EF 0 ushow.rangew
+	16#0483 16#0489 0 ushow.rangew
+	16#0591 16#05A1 0 ushow.rangew
+	16#1100 16#115F 2 ushow.rangew	% Hangul double-width
+	16#1160 16#11F9 0 ushow.rangew	% Hangul combining
+	16#FFE0 16#FFE6 2 ushow.rangew
+	16#2E80 16#3098 2 ushow.rangew
+	16#309D 16#4DB5 2 ushow.rangew
+	16#4E00 16#9FC3 2 ushow.rangew
+	16#A000 16#A4C6 2 ushow.rangew
+	pop 1 exit
+} loop } def
+
+% code from to width -> width exit
+% code from to width -> code
+
+/ushow.rangew {
+	3 index 3 index ge
+	4 index 3 index le and {
+		exch pop exch pop exch pop exit
+	} {
+		pop pop pop
+	} ifelse
+} def
 
 % Is a combining character?
 % Used to reset width, see doc/utf.txt for explaination. This a dirty workaround.
@@ -166,118 +186,5 @@ end
 	dup dup 16#0591 ge exch 16#05A1 le and { true exit } if
 	usubst.table 1 index .knownget { /.notdefc eq } { false } ifelse exit
 } loop exch pop } def
-
-% Substitution glyph name. Glyphs are taken from /notdef font in case requested
-% code point was not found anywhere in the fontset.
-% 	codepoint -> /glyphname
-/ushow.findsubst { {
-	% big well-defined sets
-	dup 16#0020 lt { /.notdefx exit } if
-	dup 16#FFFF gt { /.notdefz exit } if
-	dup dup 16#0300 ge exch 16#036F le and { /.notdefc exit } if
-	dup dup 16#20D0 ge exch 16#20EF le and { /.notdefc exit } if
-	dup dup 16#2E80 ge exch 16#4DB5 le and { /.notdefw exit } if
-	dup dup 16#4E00 ge exch 16#9FC3 le and { /.notdefw exit } if
-	dup dup 16#A000 ge exch 16#A4C6 le and { /.notdefw exit } if
-	% exclude special cases
-	dup usubst.table exch .knownget { exit } if
-	% smaller cases
-	dup dup 16#0483 ge exch 16#0489 le and { /.notdefc exit } if		% cyrillic combining marks
-	dup dup 16#0591 ge exch 16#05A1 le and { /.notdefc exit } if		% hebrew u
-	dup dup 16#05A2 ge exch 16#05BD le and { /.notdefl exit } if
-	dup dup 16#1DC1 ge exch 16#1DCA le and { /.notdefl exit } if
-	dup dup 16#FE00 ge exch 16#FE0F le and { /.notdefx exit } if		% variation selectors (?)
-	dup dup 16#FFE0 ge exch 16#FFE6 le and { /.notdefw exit } if		% fullwidth currency
-	/.notdef exit
-} loop exch pop } def
-
-% glyphs from /notdef font, special cases which do not fit usubstitute ranges
-/usubst.table <<
-	16#02DD /.notdefo
-	16#02DE /.notdefo
-	16#02DF /.notdefo
-	16#02E0 /.notdefo
-	16#02E2 /.notdefo
-	16#02E3 /.notdefo
-	16#02E4 /.notdefo
-	16#02E5 /.notdefo
-
-	% hebrew
-	16#0591	/.notdefl
-	16#0596	/.notdefl
-	16#059A	/.notdefl
-	16#059B	/.notdefl
-	16#05A8 /.notdefc
-	16#05A9 /.notdefc
-	16#05AB /.notdefc
-	16#05AC /.notdefc
-	16#05AE /.notdefc
-	16#05AF /.notdefc
-	16#05B9 /.notdefc
-	16#05BA /.notdefc
-	16#05BF /.notdefc
-	16#05C1 /.notdefc
-	16#05C2 /.notdefc
-	16#05C4 /.notdefc
-	16#05C5 /.notdefl
-	16#05C7 /.notdefl
-
-	16#0483 /.notdefc
-	16#0484 /.notdefc
-	16#0485 /.notdefc
-	16#0486 /.notdefc
-	16#0488 /.notdefo
-	16#0489 /.notdefo
-
-	% katakana-hiragana combining voice marks
-	16#3099 /.notdefc
-	16#309A /.notdefc
-
-	% combining ligatures
-	16#FE20 /.notdefc
-	16#FE21 /.notdefc
-	16#FE22 /.notdefc
-	16#FE23 /.notdefc
-
-	16#FFFF /.notdefx
-	16#FFFE /.notdefx
-
-	16#1DFE /.notdefc
-	16#1DFF /.notdefc
-
-	16#0E31 /.notdefc
-	16#0E34 /.notdefc
-	16#0E35 /.notdefc
-	16#0E36 /.notdefc
-	16#0E37 /.notdefc
-	16#0E38 /.notdefc
-	16#0E39 /.notdefc
-	16#0E3A /.notdefc
-	16#0E47 /.notdefc
-	16#0E48 /.notdefc
-	16#0E49 /.notdefc
-	16#0E4A /.notdefc
-	16#0E4B /.notdefc
-	16#0E4C /.notdefc
-	16#0E4D /.notdefc
-	16#0E4E /.notdefc
->> def
-
-% Inherent character width, used for substitution with spaces
-%	codepoint uwidth emwidth
-% Note this is last-resort fallback, in case /notdef was not loaded.
-% Generally /notdef* glyphs are used instead of spaces.
-/uwidth {
-	usubstitute uwidth.table exch get
-} def
-
-/uwidth.table <<
-	/.notdefc 0			% combining
-	/.notdefl 0			% low combining
-	/.notdefx 0			% control
-	/.notdefz 0			% weird
-	/.notdef 1			% normal/half-width
-	/.notdefw 2			% wide
->> def
 
 currentdict end /unifont exch /ProcSet defineresource pop
