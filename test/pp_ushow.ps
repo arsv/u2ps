@@ -1,14 +1,12 @@
 %!PS-Adobe-2.0
 %%BoundingBox: 0 0 600 400
 %%EndComments
-%%BeginSetup
-/Lga/Unidata findresource /LGA exch def
-/unifont/ProcSet findresource { def } forall
-/TR /Times-Roman findfont 24 scalefont def
-%%EndSetup
 %%Page: 1
 
-TR setfont 180 200 moveto (Test éáñâöß абвг αβγδ) ushow
+/Lga/Unidata findresource /LGA exch def
+/unifont/ProcSet findresource { def } forall
+/FreeSerif findfont 24 scalefont setfont
+180 200 moveto (Test éáñâöß абвг αβγδ) ushow
 showpage
 
 %%EOF
