@@ -311,4 +311,4 @@ end
 	{ 1 index 1 index known not { pop pop false } { get true } ifelse } def
 } ifelse
 
-currentdict end /fontset exch /ProcSet defineresource pop
+currentdict end /unifont exch /ProcSet defineresource pop
