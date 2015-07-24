@@ -1,0 +1,8 @@
+(test.ps) run
+(../res/ProcSet/unifont) run
+/fontset/ProcSet findresource { def } forall
+
+/deutfx { deutf aload pop } def
+
+(T1): (abc) deutfx :: 16#61 16#62 16#63 TEST
+(T1): (абв) deutfx :: 16#430 16#431 16#432 TEST
