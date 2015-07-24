@@ -123,6 +123,35 @@ end
 } def
 
 
+% Show the glyph *and* do stats if necessary.
+%
+% code /glyph ->
+
+/ushow.printglyph {
+	glyphshow pop	% TODO stats
+} def
+
+% Well $code is not in currentfont, so got to pull notdef
+% and print a substitution char instead.
+%
+% code ->
+
+/ushow.notdef 10 dict def
+
+/ushow.substitute {
+	gsave
+
+	currentfont /ScaleMatrix get 0 get
+	dup ushow.notdef exch .knownget {
+		setfont pop
+	} {
+		dup /notdef findfont exch scalefont dup setfont
+		ushow.notdef 3 1 roll put
+	} ifelse
+
+	ushow.findsubst glyphshow
+	currentpoint grestore moveto
+} def
 
 
 
@@ -140,7 +169,7 @@ end
 % Substitution glyph name. Glyphs are taken from /notdef font in case requested
 % code point was not found anywhere in the fontset.
 % 	codepoint -> /glyphname
-/usubstitute { {
+/ushow.findsubst { {
 	% big well-defined sets
 	dup 16#0020 lt { /.notdefx exit } if
 	dup 16#FFFF gt { /.notdefz exit } if
