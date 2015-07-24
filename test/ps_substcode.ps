@@ -1,0 +1,19 @@
+(test.ps) run
+(../res/ProcSet/unifont) run
+/unifont/ProcSet findresource { def } forall
+
+% Now these *may* fail by returning 1 for non-regular characters.
+% That's not good but not that bad either.
+% Failing in any other way is not acceptable.
+
+(lat1): 16#0020 ushow.substcode :: 1 TEST
+(lat2): 16#0110 ushow.substcode :: 1 TEST
+(lat3): 16#02EE ushow.substcode :: 1 TEST
+(comb1): 16#0300 ushow.substcode :: 0 TEST
+(comb2): 16#0362 ushow.substcode :: 0 TEST
+(comb3): 16#20D0 ushow.substcode :: 0 TEST
+(wide1): 16#FFE0 ushow.substcode :: 2 TEST
+(wide2): 16#FFE6 ushow.substcode :: 2 TEST
+(wide3): 16#1100 ushow.substcode :: 2 TEST
+(wide4): 16#2E80 ushow.substcode :: 2 TEST
+(wide*): 16#4E10 ushow.substcode :: 2 TEST
