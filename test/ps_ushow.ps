@@ -1,0 +1,36 @@
+(test.ps) run
+(../res/ProcSet/unifont) run
+/fontset/ProcSet findresource { def } forall
+
+% Here we make sure ushow calls printglyph and substitute
+% with the right arguments, which is basically a test for
+% the main ushow loop, deutf, and findglyph.
+
+/currentfont << /CharStrings <<
+	/a 10
+	/b 11
+	/c 12
+	/d 13
+	/e 14
+	/f 15
+>> >> def
+
+/LGA <<
+	16#0061 /a
+	16#0062 /b
+	16#0063 /c
+	16#0064 /d
+	16#0065 /e
+	16#0066 /f
+	16#007A /z
+>> def
+
+% code /name -> 
+/ushow.printglyph { count 1 roll pop } def
+% code -> 
+/ushow.substitute { count 1 roll } def
+
+(T1): (abc) ushow :: /c /b /a TEST
+(T2): (azc) ushow :: /c 16#007A /a TEST
+(S1): (a c) ushow :: /c 32 /a TEST		% space is not in CharStrings!
+(S2): (- +) ushow :: 43 32 45 TEST
