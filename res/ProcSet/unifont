@@ -110,17 +110,17 @@ end
 	16 10 string cvrs					% (431)
 	dup length 4 exch sub					% (431) 1
 	dup 0 gt { 4 } { 1 index length } ifelse
-	4 add string						% (431) 1 (--------)
-	dup 0 (/uni) putinterval				% (431) 1 (/uni----)
-	1 index 0 gt {						% (431) 1 (/uni----) 1
+	3 add string						% (431) 1 (-------)
+	dup 0 (uni) putinterval					% (431) 1 (uni----)
+	1 index 0 gt {						% (431) 1 (uni----) 1
 		1 index
-		4 exch 1 exch 3 add {
+		3 exch 1 exch 2 add {
 			1 index exch (0) putinterval
 		} for
-	} if							% (431) 1 (/uni0---)
-	dup 4 1 roll 3 1 roll					% (/uni0---) (/uni0---) (431) 1
-	dup 0 gt { 4 add } { pop 4 } ifelse
-	exch putinterval
+	} if							% (431) 1 (uni0---)
+	dup 4 1 roll 3 1 roll					% (uni0---) (uni0---) (431) 1
+	dup 0 gt { 3 add } { pop 3 } ifelse
+	exch putinterval cvn
 } def
 
 

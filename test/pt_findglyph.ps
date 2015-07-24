@@ -24,6 +24,6 @@
 (a): 16#0061 ushow.findglyph :: 16#0061 /a true TEST
 (b): 16#0062 ushow.findglyph :: 16#0062 /b true TEST
 (c): 16#0063 ushow.findglyph :: 16#0063 /c true TEST
-(d): 16#0064 ushow.findglyph :: 16#0064 /d true TEST
-(d): 16#0064 ushow.findglyph :: 16#0064 /d true TEST
-(e): 16#0065 ushow.findglyph :: 16#0065 false TEST
+% both /d and /uni0064 are defined; prefer the latter
+(d): 16#0064 ushow.findglyph :: 16#0064 /uni0064 true TEST
+(e): 16#0065 ushow.findglyph :: 16#0065 /uni0065 true TEST
