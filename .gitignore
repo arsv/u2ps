@@ -11,3 +11,4 @@ test/*
 !test/*.c
 !test/*.h
 !test/*.ps
+!test/*.sh
