@@ -289,17 +289,6 @@ end
 	{ pop (M) stringwidth } bind def
 } ifelse
 
-% Same for dicttomark, apparently missing from some Level 2 interpreters
-% 	mark ... dicttomark
-% is equivalent to
-%	<< ... >>
-% but I feel bad about doing stuff like "<< exch" even if it works.
-/.dicttomark dup where {
-	pop pop
-} {
-	{ counttomark 2 idiv dup dict begin { def } repeat pop currentdict end } def
-} ifelse
-
 % Ghostscript-specific but pretty handy routine
 %	dict key -> value true
 %	dict key -> false
