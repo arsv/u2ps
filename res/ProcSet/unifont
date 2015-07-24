@@ -280,25 +280,4 @@ end
 	/.notdefw 2			% wide
 >> def
 
-
-% --- compatibility definitions ------------------------------------------------
-
-% Prevent error on interpreters lacking .glyphwidth
-% Of course, this will produce awfully incorrect results,
-% but *good* replacement would be too complicated.
-/.glyphwidth dup where {
-	pop pop
-} {
-	{ pop (M) stringwidth } bind def
-} ifelse
-
-% Ghostscript-specific but pretty handy routine
-%	dict key -> value true
-%	dict key -> false
-/.knownget dup where {
-	pop pop
-} {
-	{ 1 index 1 index known not { pop pop false } { get true } ifelse } def
-} ifelse
-
 currentdict end /unifont exch /ProcSet defineresource pop
