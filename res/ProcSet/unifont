@@ -5,15 +5,13 @@
 
 % (utf-8-string) ushow -
 /ushow {
-	currentfont exch					% font
-	deutf { 						% font c
-		ushow.findglyph {				% font c /glyph
-			ushow.printglyph			% font
-		} {						% font c
+	deutf { 						% c
+		ushow.findglyph {				% c /glyph
+			ushow.printglyph			% 
+		} {						% c
 			ushow.substitute
 		} ifelse
-	} forall						% font
-	pop
+	} forall						% 
 } def
 
 % (utf-8-string) ustringwidth w 0
