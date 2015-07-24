@@ -1,0 +1,29 @@
+(test.ps) run
+(../res/ProcSet/unifont) run
+/fontset/ProcSet findresource { def } forall
+
+/currentfont << /CharStrings <<
+	/a 10
+	/b 20
+	/c 30
+	/calt 31
+	/d 33
+	/uni0064 33
+	/uni0065 34
+>> >> def
+
+/LGA <<
+	16#0061 /a
+	16#0062 [ /b /balt ]
+	16#0063 [ /c /calt ]
+	16#0064 /d
+	16#0065 /e
+>> def
+
+(x): 16#0078 ushow.findglyph :: 16#0078 false TEST
+(a): 16#0061 ushow.findglyph :: 16#0061 /a true TEST
+(b): 16#0062 ushow.findglyph :: 16#0062 /b true TEST
+(c): 16#0063 ushow.findglyph :: 16#0063 /c true TEST
+(d): 16#0064 ushow.findglyph :: 16#0064 /d true TEST
+(d): 16#0064 ushow.findglyph :: 16#0064 /d true TEST
+(e): 16#0065 ushow.findglyph :: 16#0065 false TEST
