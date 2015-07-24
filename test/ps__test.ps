@@ -1,0 +1,27 @@
+% TEST itself is pretty complex, so this is a simple playground
+% to make sure it works as expected in the first place.
+
+(test.ps) run
+
+% First part, make sure deepeq works
+
+/true?  { { (OK ) }{ (FAIL ) } ifelse print TTAG print (\n) print } def
+/false? { { (FAIL ) }{ (OK ) } ifelse print TTAG print (\n) print } def
+
+(1): [1 2 3]   [1 2 3]    arrayeq true?
+(2): [1 2 3]   [1 2]      arrayeq false?
+(3): [2 3 3]   [1 2 3]    arrayeq false?
+(4): [[1] 2 3] [[1] 2 3]  arrayeq true?
+
+(5): 1         1          deepeq true?
+(6): 1         2          deepeq false?
+(7): 1         [1 2 3]    deepeq false?
+(8): null      null       deepeq true?
+
+% Second part, check TEST itself
+
+(P1): 1 3 add :: 4 TEST	% pass
+(F1): 1 3 add :: 5 TEST	% fail
+
+(P2): /a 4 8 exch div :: /a 2.0 TEST % pass
+(F2): /a 4 8 exch div :: /a 1.0 TEST % fail

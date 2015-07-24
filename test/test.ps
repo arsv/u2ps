@@ -1,0 +1,54 @@
+% PostScript routines test utils.
+% All actual test should be of this form:
+%
+%     (tag): ... :: ... TEST
+%             ^      ^-- stack state after running the code
+%             +- code to run, typically a function call
+%
+% The results are compared using deepeq below, which is better
+% than eq but still leaves out a lot. Do not use on dicts.
+%
+% The expected results are assumed to not contain raw marks.
+
+/TTAG (--) def
+
+/: { /TTAG exch def } def
+/:: { mark } def
+
+/deepeq { {
+	1 index type 1 index type ne { pop pop false exit } if
+	dup type /arraytype eq { arrayeq exit } if
+	eq exit	
+} loop } def
+
+/arrayeq {
+	1 index length 1 index length eq not {
+		pop pop false
+	} {
+		true 1 index length 1 sub 0 exch 1 exch {	% A B T i
+			3 index 1 index get
+			3 index 2 index get
+			deepeq { pop } { pop pop false exit } ifelse
+		} for exch pop exch pop
+	} ifelse	
+} def
+
+/TEST { {
+	counttomark array astore exch pop
+	count 1 roll
+	count 1 sub array astore exch		% [ACTUAL] [TEST]
+
+	1 index length 1 index length eq not {
+		(FAIL )print TTAG print ( length mismatch\n) print
+		exit
+	} if
+	
+	true
+	1 index length 1 sub 0 exch 1 exch {		% [A] [T] T i
+		3 index 1 index get			% [A] [T] T i Ai
+		3 index 2 index get			% [A] [T] T i Ai Ti
+		deepeq { pop } { exch pop false exit } ifelse
+	} for { (OK ) } { (FAIL ) } ifelse
+	print TTAG print (\n) print exit
+
+} loop clear } def
