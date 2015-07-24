@@ -3,7 +3,7 @@
 % Reversed Adobe Glyph List
 % (perhaps should be constructed on the fly?..)
 
-/LGA <<
+/Lga <<
 	16#0001 /controlSTX
 	16#0002 /controlSOT
 	16#0003 /controlETX
