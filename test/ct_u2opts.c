@@ -1,4 +1,4 @@
-#include "test.h"
+#include "ct.h"
 
 extern char* inputname;
 extern char* outputname;

@@ -1,5 +1,5 @@
 % PostScript routines test utils.
-% All actual test should be of this form:
+% Tests should look like this:
 %
 %     (tag): ... :: ... TEST
 %             ^      ^-- stack state after running the code
@@ -8,7 +8,8 @@
 % The results are compared using deepeq below, which is better
 % than eq but still leaves out a lot. Do not use on dicts.
 %
-% The expected results are assumed to not contain raw marks.
+% The expected results are assumed to not contain raw marks,
+% because :: is a mark and TEST uses counttomark.
 
 /TTAG (--) def
 
