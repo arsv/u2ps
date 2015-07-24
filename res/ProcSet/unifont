@@ -27,10 +27,13 @@ currentfontset begin
 end
 } def
 
+% Decode utf-8
+%
 % (utf8-string) -> [ codepoint codepoint ... codepoint ]
 %
 % in case of malformed string, codepoint -1 is inserted where
-% parser failed to interpret data.
+% the parser failed to interpret data.
+
 /deutf {
 	mark exch 0 exch { {		% expect c
 		% continuation byte
