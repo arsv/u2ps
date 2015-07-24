@@ -10,3 +10,4 @@ test/*
 !test/Makefile
 !test/*.c
 !test/*.h
+!test/*.ps
