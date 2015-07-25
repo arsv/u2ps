@@ -16,7 +16,6 @@
 
 % (utf-8-string) ustringwidth w 0
 /ustringwidth {
-currentfontset begin
 	0 exch deutf { 
 		ushow.findglyph {
 			.glyphwidth pop
@@ -24,7 +23,6 @@ currentfontset begin
 			ushow.substwidth
 		} ifelse add
 	} forall 0.0
-end
 } def
 
 % Decode utf-8
