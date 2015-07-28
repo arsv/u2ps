@@ -53,4 +53,4 @@ ct_takecsi: ct_takecsi.o globals.o u2ps_term.o u2ps_tset.o u2ps_tcsi.o u2ps_pswr
 
 ct_strecat: ct_strecat.o psfrem_util.o
 
-ct_u2opts: ct_u2opts.o u2ps_opts.o warn.o
+ct_u2opts: ct_u2opts.o u2ps_opts.o u2ps_data.o warn.o
