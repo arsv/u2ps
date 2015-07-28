@@ -75,7 +75,7 @@
 % uni -> uni false
 %
 % What this actually does is making a list of possible names,
-% say, [ /uni0020 /space /spacehackarabic ], and then tries
+% say, [ /uni0020 /space /spacehackarabic ], and then trying
 % each of them against currentfont's CharStrings.
 
 /ushow.findglyph {
