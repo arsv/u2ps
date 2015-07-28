@@ -137,13 +137,13 @@
 % code ->
 
 /ushow.substitute {
-	ushow.substcode { /notdef glyphshow } repeat
+	ushow.substcode { /.notdef glyphshow } repeat
 } def
 
 % Like substitute but only returns the width.
 
 /ushow.substwidth {
-	ushow.substcode /notdef .glyphwidth pop mul
+	ushow.substcode /.notdef .glyphwidth pop mul
 } def
 
 /ushow.substcode { {
