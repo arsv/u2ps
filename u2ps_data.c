@@ -28,8 +28,9 @@ const struct papersize papersize[] = {
 };
 
 const struct fontaspect fontaspects[] = {
-	{ "FreeMono",	600 },
-	{ NULL }
+	{ "DejaVuSansMono",	602 },
+	{ "EnvyCodeR",		537 },
+	{ NULL,			600 }
 };
 
 const struct fontvariant fontvariants[] = {

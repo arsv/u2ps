@@ -365,11 +365,11 @@ void set_font_aspects(void)
 		for(a = fontaspects; a->name; a++)
 			if(!strcmp(a->name, fn[i].name))
 				fn[i].aspect = a->aspect;
+		if(!fn[i].aspect)
+			fn[i].aspect = a->aspect;
 	}
 
 	fonts.aspect = fonts.text[0].aspect;
-	if(!fonts.aspect)
-		fonts.aspect = 500;
 }
 
 #define count(a) (sizeof(a)/sizeof(*a))
