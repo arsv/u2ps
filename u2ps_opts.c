@@ -328,9 +328,9 @@ void set_termfontsize(int tw, int th)
 	int rows = genopts.rows;
 
 	if(!fs && !cols && !rows)
-		fs = 1200;
+		fs = 1000; /* in cpt; 10pt */
 
-	int fsc = cols ? 100*tw/cols : 0;
+	int fsc = cols ? 100*tw/cols*1000/fa : 0;
 	int fsr = rows ? 100*th/rows : 0;
 
 	if(fsc && fsc < fsr) fsr = 0;
@@ -341,15 +341,15 @@ void set_termfontsize(int tw, int th)
 
 	genopts.cols = 100*tw/fs*1000/fa;
 	genopts.rows = 100*th/fs;
-	fonts.basesize = fs/100;
+	fonts.basesize = fs;
 
 	if(!fonts.head.size)
-		fonts.head.size = 8*fs/1000;
+		fonts.head.size = 8*fs/10;
 	if(!fonts.line.size)
-		fonts.line.size = 8*fs/1000;
+		fonts.line.size = 8*fs/10;
 
 	if(verbose)
-		warn("Terminal area: %ix%ipt, font size %ipt, %i cols %i rows\n",
+		warn("Terminal area %ix%ipt, final font size %icpt, %i cols %i rows\n",
 			tw, th, fonts.basesize, genopts.cols, genopts.rows);
 }
 

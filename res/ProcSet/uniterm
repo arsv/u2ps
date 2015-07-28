@@ -224,13 +224,14 @@ grestore
 } def
 
 /fontcmd {
-	1 index type /nametype eq { dup } if
+	1 index type /nametype eq { dup } { 1 index mul } ifelse
 	matrix scale
 	exch findfont exch makefont
 	/setfont load
 	2 array astore cvx
 } def
 
-/cpt { 100 div } def % centipoints
+/cpt { 100 div } def  % centipoints
+/mil { 1000 div } def % promille
 
 currentdict end /uniterm exch /ProcSet defineresource pop

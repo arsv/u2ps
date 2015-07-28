@@ -19,8 +19,8 @@ void put_global_setup(void)
 
 	int fs = fonts.basesize;
 	int fa = fonts.aspect;
-	psline("/em %i def	%% terminal grid x-step\n", fs*fa/1000);
-	psline("/ex %i def	%% terminal grid y-step\n", fs);
+	psline("/em %i cpt def  	%% terminal grid x-step\n", fs*fa/1000);
+	psline("/ex %i cpt def  	%% terminal grid y-step\n", fs);
 	psline("/tabstop %i def\n", genopts.tabstop);
 	psnl(1);
 
@@ -58,8 +58,8 @@ void put_global_setup(void)
 
 	/* if headers */
 	psline("/headsep ex def\n");
-	psline("/term-yh term-yt headsep add %i .2 mul add def\n", fonts.head.size);
-	psline("/term-yf term-yb headsep sub %i .8 mul sub def\n", fonts.head.size);
+	psline("/term-yh term-yt headsep add %i cpt .2 mul add def\n", fonts.head.size);
+	psline("/term-yf term-yb headsep sub %i cpt .8 mul sub def\n", fonts.head.size);
 	psnl(1);
 
 	psline("%% base terminal colors\n");
@@ -76,9 +76,9 @@ void put_global_setup(void)
 void findfont(const char* name, const struct font* f)
 {
 	if(f->xscale && f->xscale != 1000)
-		psline("/%s /%s %i %.1f fontcmd def\n",
-				name, f->name, f->size, 1.0*f->size*f->xscale/1000);
+		psline("/%s /%s %i cpt %.1f mil fontcmd def\n",
+				name, f->name, f->size, f->xscale);
 	else
-		psline("/%s /%s %i fontcmd def\n",
+		psline("/%s /%s %i cpt fontcmd def\n",
 				name, f->name, f->size);
 }
