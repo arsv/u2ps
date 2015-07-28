@@ -75,7 +75,9 @@ void put_global_setup(void)
 
 void findfont(const char* name, const struct font* f)
 {
-	if(f->xscale && f->xscale != 1000)
+	if(!f->name)
+		psline("/%s /fR load def\n", name);
+	else if(f->xscale && f->xscale != 1000)
 		psline("/%s /%s %i cpt %.1f mil fontcmd def\n",
 				name, f->name, f->size, f->xscale);
 	else
