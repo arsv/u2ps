@@ -4,6 +4,7 @@
 
 #include "u2ps.h"
 #include "warn.h"
+#include "u2ps_data.h"
 
 char* inputname = NULL;
 char* outputname = NULL;
@@ -31,9 +32,11 @@ struct pagelayout pagelayout = {
 };
 
 struct fonts fonts = {
-	.text = { 12, "FreeMono" },
-	.head = { 10, "Times-Roman" },
-	.line = { 10, "Times-Roman" }
+	.head = { "Times-Roman" },
+	.line = { "Times-Roman" },
+	.text = {
+		[REGULAR] = { "FreeMono", 12 }
+	}
 };
 
 struct headings headings = {
@@ -114,10 +117,8 @@ struct option {
 	{ 'P', "paper",		FUNC,	set_paper },
 	{ 'M', "margins",	FUNC,	set_margins },
 	{ 'r', "landscape",	BOOL,	&genopts.landscape },
-	{ 's', "font-size",	INT,	&fonts.text.size },
 	{ 'C', "columns",	INT,	&genopts.cols },
 	{ 'L', "lines",		INT,	&genopts.rows },
-	{ 'f', "font",		STRING,	&fonts.text.name },
 	{ '-', "head-font",	STRING, &fonts.head.name },
 	{ '-', "line-font",	STRING, &fonts.line.name },
 	{ 'o', "stdout",	BOOL,	&runopts.stdout },
@@ -137,35 +138,6 @@ struct option {
 	{ 'I', NULL,		PASS,	add_passopt },
 	{ 'v', "verbose",	BOOL,	&verbose },
 	{  0 }
-};
-
-struct papersize {
-	char* name;
-	short pw, ph;	
-	short mv, mh;
-} papersize[] = {
-	{ "a0",		2384,	3370,	100,	 0 },
-	{ "a1",		1684,	2384,	 90,	 0 },
-	{ "a2",		1190,	1684,	 80,	 0 },
-	{ "a3",		 842,	1191,	 70,	 0 },
-	{ "a4",		 595,	 842,	 55,	57 },
-	{ "a5",		 420,	 595,	 50,	 0 },
-	{ "a6",		 298,	 420,	 15,	 0 },
-	{ "a7",		 210,	 298,	 10,	 0 },
-	{ "b0",		2835,	4008,	  0,	 0 },
-	{ "b1",		2004,	2835,	  0,	 0 },
-	{ "b2",		1417,	2004,	  0,	 0 },
-	{ "b3",		1001,	1427,	  0,	 0 },
-	{ "b4",		 709,	1001,	  0,	 0 },
-	{ "b5",		 499,	 709,	  0,	 0 },
-	{ "b6",		 354,	 499,	  0,	 0 },
-	{ "c0",		1837,	 578,	  0,	 0 },
-	{ "c1",		 919,	 649,	  0,	 0 },
-	{ "c2",		 459,	 323,	  0,	 0 },
-	{ "letter",	 612,	 792,	  0,	 0 },
-	{ "ledger",	 792,	1224,	  0,	 0 },
-	{ "executive",	 522,	 756,	  0,	 0 },
-	{ NULL }
 };
 
 #define GOT_THIS_OPT_ONLY 0
@@ -268,7 +240,7 @@ void set_paper(char* opt)
 		pagelayout.pw = atoi(opt);
 		pagelayout.ph = atoi(sep);
 	} else {
-		struct papersize* p;
+		const struct papersize* p;
 		for(p = papersize; p->name; p++)
 			if(!strcmp(p->name, opt))
 				break;
@@ -308,6 +280,15 @@ void add_passopt(char* opt)
 	passopts[passnum] = NULL;
 }
 
+/* Font and terminal size settings are heavily interconnected: we need
+   to know primary font aspect ratio before deciding terminal size,
+   terminal size may affect (set) primary font size, which in turn affects
+   sizes of all other fonts. Because of this, fonts are set up in two steps,
+   with terminal size selection between them. */
+
+static void set_font_aspects(void);
+static void set_font_variants(void);
+static void set_font_sizes(void);
 static void set_termfontsize(int tbw, int tbh);
 
 void set_derivative_parameters()
@@ -315,10 +296,15 @@ void set_derivative_parameters()
 	int tbw = pagelayout.pw - pagelayout.ml - pagelayout.mr;
 	int tbh = pagelayout.ph - pagelayout.mt - pagelayout.mb;
 
+	set_font_aspects();
+	set_font_variants();
+
 	if(genopts.landscape)
 		set_termfontsize(tbh, tbw);	
 	else
 		set_termfontsize(tbw, tbh);
+
+	set_font_sizes();
 
 	if(headings.hl || headings.hc || headings.hr
 	|| headings.fl || headings.fc || headings.fr)
@@ -333,17 +319,19 @@ void set_derivative_parameters()
    Any of the three can be set by the user, and by this point bounding box
    (paper size minus margins) is known as well. */
 
-static void set_termfontsize(int tw, int th)
+void set_termfontsize(int tw, int th)
 {
-	int fs = 10*fonts.text.size;
+	int fs = 100*fonts.basesize;
+	int fa = fonts.aspect;
+
 	int cols = genopts.cols;
 	int rows = genopts.rows;
 
 	if(!fs && !cols && !rows)
-		fs = 120;
+		fs = 1200;
 
-	int fsc = cols ? 20*tw/cols : 0;
-	int fsr = rows ? 10*th/rows : 0;
+	int fsc = cols ? 100*tw/cols : 0;
+	int fsr = rows ? 100*th/rows : 0;
 
 	if(fsc && fsc < fsr) fsr = 0;
 	if(fsr && fsr < fsc) fsc = 0;
@@ -351,16 +339,79 @@ static void set_termfontsize(int tw, int th)
 	if(fsr) fs = fsr;
 	if(fsc) fs = fsc;
 
-	genopts.cols = 20*tw/fs;
-	genopts.rows = 10*th/fs;
-	fonts.text.size = fs/10;
+	genopts.cols = 100*tw/fs*1000/fa;
+	genopts.rows = 100*th/fs;
+	fonts.basesize = fs/100;
 
 	if(!fonts.head.size)
-		fonts.head.size = 8*fonts.text.size/10;
+		fonts.head.size = 8*fs/1000;
 	if(!fonts.line.size)
-		fonts.line.size = 8*fonts.text.size/10;
+		fonts.line.size = 8*fs/1000;
 
 	if(verbose)
 		warn("Terminal area: %ix%ipt, font size %ipt, %i cols %i rows\n",
-			tw, th, fonts.text.size, genopts.cols, genopts.rows);
+			tw, th, fonts.basesize, genopts.cols, genopts.rows);
+}
+
+void set_font_aspects(void)
+{
+	int i;
+	struct font* fn = fonts.text;
+	const struct fontaspect* a;
+
+	for(i = 0; i < nFONTS; i++) {
+		if(!fn[i].name || fn[i].aspect)
+			continue;
+		for(a = fontaspects; a->name; a++)
+			if(!strcmp(a->name, fn[i].name))
+				fn[i].aspect = a->aspect;
+	}
+
+	fonts.aspect = fonts.text[0].aspect;
+	if(!fonts.aspect)
+		fonts.aspect = 500;
+}
+
+#define count(a) (sizeof(a)/sizeof(*a))
+
+void set_font_variants(void)
+{
+	int i;
+	struct font* fn = fonts.text;
+	const struct fontvariant* v;
+	int variants[] = { BOLD, ITALIC, BOLDITALIC };
+
+	for(i = 0; i < count(variants); i++)
+		if(fn[variants[i]].name)
+			return;
+
+	for(v = fontvariants; v->base; v++)
+		if(!strcmp(v->base, fn[REGULAR].name))
+			break;
+	if(!v->base)
+		return;
+
+	for(i = 0; i < count(variants); i++) {
+		fn[variants[i]].name = v->font[i];
+		fn[variants[i]].aspect = fn[0].aspect;
+	}
+}
+
+void set_font_sizes(void)
+{
+	int i;
+	struct font* fn = fonts.text;
+
+	fn[0].size = fonts.basesize;
+
+	for(i = 1; i < nFONTS; i++) {
+		if(!fn[i].name)
+			continue;
+		if(!fn[i].size)
+			fn[i].size = fn[0].size;
+		if(!fn[i].aspect)
+			fn[i].aspect = fn[0].aspect;
+
+		fn[i].xscale = 1000*fn[0].aspect/fn[i].aspect;
+	}
 }

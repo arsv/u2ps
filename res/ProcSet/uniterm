@@ -16,17 +16,14 @@
 /la { paper-h 0 translate 90 rotate } def
 
 % terminal reset
-/tr {
-	term-fset setfontset
-	term-ox term-oy moveto
-} def
+/tr { fR term-ox term-oy moveto } def
 
 % Move-shift-show, for headings
 % (s) x y shift -> -
 % no point in doing save/restore here, setfontset will break things
 % which tr will be fixing later anyway
 /mss {
-	head-fset setfontset color-fg sethexcolor
+	fh color-fg sethexcolor
 	dup 0 gt {
 		3 index ustringwidth pop mul
 		exch 3 1 roll sub exch
@@ -159,12 +156,6 @@ grestore
 	grestore
 } def
 
-% set font regular
-/fR { /regular setvariant } def
-/fB { /bold setvariant } def
-/fI { /italic setvariant } def
-/fO { /bolditalic setvariant } def
-
 % underlining
 /ux null def
 /ul { currentpoint pop /ux exch def } def
@@ -231,5 +222,15 @@ grestore
 	paper-w -1 lineto
 	closepath fill
 } def
+
+/fontcmd {
+	1 index type /nametype eq { dup } if
+	matrix scale
+	exch findfont exch makefont
+	/setfont load
+	2 array astore cvx
+} def
+
+/cpt { 100 div } def % centipoints
 
 currentdict end /uniterm exch /ProcSet defineresource pop

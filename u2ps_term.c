@@ -150,18 +150,10 @@ void new_file(void)
 	psline("%%%%EndComments\n");
 
 	psline("%%%%BeginProlog\n");
-	psline("%%%%IncludeResource: font notdef\n");
 	psline("%%%%IncludeResource: category Unidata\n");
-	psline("%%%%IncludeResource: category FontSet\n");
-	psline("%%%%IncludeResource: procset fontset\n");
+	psline("%%%%IncludeResource: procset unifont\n");
 	psline("%%%%IncludeResource: procset uniterm\n");
-	psline("%%%%IncludeResource: unidata Agl\n");
-	psline("%%%%IncludeResource: fontset %s\n", fonts.text.name);
-	if(strcmp(fonts.head.name, fonts.text.name))
-		psline("%%%%IncludeResource: fontset %s\n", fonts.head.name);
-	if(strcmp(fonts.line.name, fonts.text.name) && strcmp(fonts.line.name, fonts.head.name))
-		psline("%%%%IncludeResource: fontset %s\n", fonts.line.name);
-	psline("%%%%IncludeResource: fontset Times-Roman\n");
+	psline("%%%%IncludeResource: unidata Lga\n");
 	psline("%%%%EndProlog\n");
 	
 	put_global_setup();

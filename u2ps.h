@@ -60,14 +60,22 @@ extern struct pagelayout {
 } pagelayout;
 
 struct font {
-	int size;
 	char* name;
+	int size;	/* cpt */
+	int aspect;	/* promille */
+	int xscale;	/* promille */
 };
 
+enum { REGULAR = 0, ITALIC = 1, BOLD = 2, BOLDITALIC = 3, nFONTS };
+
 extern struct fonts {
-	struct font text;
+	int basesize;	/* cpt */
+	int aspect;	/* promille */
+
 	struct font head;
 	struct font line;
+
+	struct font text[nFONTS];
 } fonts;
 
 /* u2ps_opts.c */

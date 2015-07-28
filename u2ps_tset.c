@@ -7,26 +7,29 @@ extern struct pagelayout pagelayout;
 extern void psnl(int blanks);
 extern void psline(const char* line, ...);
 
+static void findfont(const char* var, const struct font* f);
+
 void put_global_setup(void)
 {
 	psline("%%%%BeginSetup\n");
-	psline("/fontset/ProcSet findresource { def } forall\n");
+	psline("/Lga dup /Unidata findresource def\n");
+	psline("/unifont/ProcSet findresource { def } forall\n");
 	psline("/uniterm/ProcSet findresource { def } forall\n");
 	psnl(1);
 
-	psline("/fsize %i def\n", fonts.text.size);
-	psline("/asize %i def\n", fonts.head.size);
-	psline("/lsize %i def\n", fonts.line.size);
-	psnl(1);
-
-	psline("/em fsize 2 div def		%% terminal grid x-step\n");
-	psline("/ex fsize def			%% terminal grid y-step\n");
+	int fs = fonts.basesize;
+	int fa = fonts.aspect;
+	psline("/em %i def	%% terminal grid x-step\n", fs*fa/1000);
+	psline("/ex %i def	%% terminal grid y-step\n", fs);
 	psline("/tabstop %i def\n", genopts.tabstop);
 	psnl(1);
 
-	psline("/term-fset /%s findfontset fsize scalefontset def\n", fonts.text.name);
-	psline("/head-fset /%s findfontset asize scalefontset def\n", fonts.head.name);
-	psline("/lnum-font /%s findfont lsize scalefont def\n", fonts.line.name);
+	findfont("fh", &fonts.head);
+	findfont("fl", &fonts.line);
+	findfont("fR", &fonts.text[REGULAR]);
+	findfont("fB", &fonts.text[BOLD]);
+	findfont("fI", &fonts.text[ITALIC]);
+	findfont("fO", &fonts.text[BOLDITALIC]);
 	psnl(1);
 
 	int landscape = genopts.landscape;
@@ -49,14 +52,14 @@ void put_global_setup(void)
 
 	psline("%% starting position on the page (line 1 col 1 baseline)\n");
 	psline("/term-ox term-xl def\n");
-	psline("/term-oy term-yt fsize .8 mul sub def\n");
+	psline("/term-oy term-yt ex .8 mul sub def\n");
 	psline("%% header/footer baselines\n");
 	psline("%% font depth is assumed to be .2ex\n");
 
 	/* if headers */
-	psline("/headsep fsize def\n");
-	psline("/term-yh term-yt headsep add asize .2 mul add def\n");
-	psline("/term-yf term-yb headsep sub asize .8 mul sub def\n");
+	psline("/headsep ex def\n");
+	psline("/term-yh term-yt headsep add %i .2 mul add def\n", fonts.head.size);
+	psline("/term-yf term-yb headsep sub %i .8 mul sub def\n", fonts.head.size);
 	psnl(1);
 
 	psline("%% base terminal colors\n");
@@ -68,4 +71,14 @@ void put_global_setup(void)
 
 	psline("<< /PageSize [ %i %i ] >> setpagedevice\n", pagelayout.pw, pagelayout.ph);
 	psline("%%%%EndSetup\n");
+}
+
+void findfont(const char* name, const struct font* f)
+{
+	if(f->xscale && f->xscale != 1000)
+		psline("/%s /%s %i %.1f fontcmd def\n",
+				name, f->name, f->size, 1.0*f->size*f->xscale/1000);
+	else
+		psline("/%s /%s %i fontcmd def\n",
+				name, f->name, f->size);
 }
