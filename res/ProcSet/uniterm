@@ -224,7 +224,7 @@ grestore
 } def
 
 /fontcmd {
-	1 index type /nametype eq { dup } { 1 index mul } ifelse
+	1 index type /nametype eq { dup } { 1 index mul exch } ifelse
 	matrix scale
 	exch findfont exch makefont
 	/setfont load
