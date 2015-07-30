@@ -41,6 +41,8 @@
 		printf("%s:%i: FAIL %s = " fmt " != %s\n", __FILE__, __LINE__, #val, val, #exp);\
 }
 
+#define testeqi(val, exp) testeq(val, exp, "%i")
+
 #define testnull(exp) {\
 	if((exp) == NULL) \
 		printf("%s:%i: OK %s is NULL\n", __FILE__, __LINE__, #exp);\
