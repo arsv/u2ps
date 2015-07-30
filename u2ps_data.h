@@ -9,7 +9,9 @@ extern const struct fontaspect {
 	int aspect;	
 } fontaspects[];
 
+extern const char fontkeys[];
+
 extern const struct fontvariant {
-	char* base;	/* REGULAR */
-	char* font[3];	/* BOLD, ITALIC, BOLDITALIC */
+	const char* base;
+	const char** fonts;
 } fontvariants[];

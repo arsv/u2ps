@@ -33,8 +33,27 @@ const struct fontaspect fontaspects[] = {
 	{ NULL,			600 }
 };
 
+const char fontkeys[] = "RIBO";	/* should match enum { REGULAR, ... } from u2ps.h */
+
+static const char* FreeMono[] =
+	{ "R:FreeMono", "B:FreeMonoBold", "I:FreeMonoOblique",
+	  "O:FreeMonoBoldOblique", NULL };
+static const char* DejaVu[] =
+	{ "R:DejaVuSansMono-Regular", "B:DejaVuSansMono-Bold",
+	  "I:DejaVuSansMono-Oblique", "O:DejaVuSansMono-BoldOblique", NULL };
+static const char* EnvyCodeR[] =
+	{ "R:EnvyCodeR", "B:EnvyCodeRBold", "I:EnvyCodeRItalic", NULL };
+static const char* Liberation[] =
+	{ "R:LiberationMono", "B:LiberationSans-Bold",
+	  "I:LiberationSans-Italic", "O:LiberationSans-BoldItalic", NULL };
+static const char* FiraMono[] =
+	{ "R:FiraMono-Regular", "B:FiraMono-Bold", NULL };
+
 const struct fontvariant fontvariants[] = {
-/*	     regular             bold             italic             bold italic */
-	{ "FreeMono", {	"FreeMonoBold", "FreeMonoOblique", "FreeMonoBoldOblique" } },
+	{ "FreeMono",	FreeMono },
+	{ "DejaVu",	DejaVu },
+	{ "EnvyCodeR",	EnvyCodeR },
+	{ "Liberation",	Liberation },
+	{ "FiraMono",	FiraMono },
 	{ NULL }
 };

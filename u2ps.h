@@ -32,6 +32,7 @@ extern struct genopts {
 	bool inverse;
 	bool linenum;
 	bool bookish;
+	bool square;
 
 	char* title;
 
@@ -60,23 +61,19 @@ extern struct pagelayout {
 } pagelayout;
 
 struct font {
-	char* name;
-	int size;	/* cpt */
+	const char* name;
 	int aspect;	/* promille */
 	int xscale;	/* promille */
 };
 
 enum { REGULAR = 0, ITALIC = 1, BOLD = 2, BOLDITALIC = 3, nFONTS };
 
-extern struct fonts {
-	int basesize;	/* cpt */
-	int aspect;	/* promille */
+extern const char* auxfont;
+extern int auxsize;
 
-	struct font head;
-	struct font line;
-
-	struct font text[nFONTS];
-} fonts;
+extern int fontsize;	/* cpt */
+extern int fontaspect;  /* promille */
+extern struct font fonts[];
 
 /* u2ps_opts.c */
 void handle_args(int argc, char** argv);

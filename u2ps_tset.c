@@ -1,9 +1,5 @@
 #include "u2ps.h"
 
-extern struct genopts genopts;
-extern struct fonts fonts;
-extern struct pagelayout pagelayout;
-
 extern void psnl(int blanks);
 extern void psline(const char* line, ...);
 
@@ -17,19 +13,19 @@ void put_global_setup(void)
 	psline("/uniterm/ProcSet findresource { def } forall\n");
 	psnl(1);
 
-	int fs = fonts.basesize;
-	int fa = fonts.aspect;
+	int fs = fontsize;
+	int fa = fontaspect;
 	psline("/em %i cpt def  	%% terminal grid x-step\n", fs*fa/1000);
 	psline("/ex %i cpt def  	%% terminal grid y-step\n", fs);
 	psline("/tabstop %i def\n", genopts.tabstop);
 	psnl(1);
 
-	findfont("fh", &fonts.head);
-	findfont("fl", &fonts.line);
-	findfont("fR", &fonts.text[REGULAR]);
-	findfont("fB", &fonts.text[BOLD]);
-	findfont("fI", &fonts.text[ITALIC]);
-	findfont("fO", &fonts.text[BOLDITALIC]);
+	psline("/auxfont /%s findfont %i cpt scalefont def\n", auxfont, auxsize);
+
+	findfont("fR", &fonts[REGULAR]);
+	findfont("fB", &fonts[BOLD]);
+	findfont("fI", &fonts[ITALIC]);
+	findfont("fO", &fonts[BOLDITALIC]);
 	psnl(1);
 
 	int landscape = genopts.landscape;
@@ -58,8 +54,8 @@ void put_global_setup(void)
 
 	/* if headers */
 	psline("/headsep ex def\n");
-	psline("/term-yh term-yt headsep add %i cpt .2 mul add def\n", fonts.head.size);
-	psline("/term-yf term-yb headsep sub %i cpt .8 mul sub def\n", fonts.head.size);
+	psline("/term-yh term-yt headsep add %i cpt .2 mul add def\n", auxsize);
+	psline("/term-yf term-yb headsep sub %i cpt .8 mul sub def\n", auxsize);
 	psnl(1);
 
 	psline("%% base terminal colors\n");
@@ -78,9 +74,9 @@ void findfont(const char* name, const struct font* f)
 	if(!f->name)
 		psline("/%s /fR load def\n", name);
 	else if(f->xscale && f->xscale != 1000)
-		psline("/%s /%s %i cpt %.1f mil fontcmd def\n",
-				name, f->name, f->size, f->xscale);
+		psline("/%s /%s %i cpt %i mil fontcmd def\n",
+				name, f->name, fontsize, f->xscale);
 	else
 		psline("/%s /%s %i cpt fontcmd def\n",
-				name, f->name, f->size);
+				name, f->name, fontsize);
 }

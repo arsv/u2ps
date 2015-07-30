@@ -7,4 +7,9 @@ char* inputname;
 struct genopts genopts;
 struct pagelayout pagelayout;
 struct headings headings;
-struct fonts fonts;
+
+int fontsize;
+int fontaspect;
+int auxsize;
+const char* auxfont;
+struct font fonts[nFONTS];
