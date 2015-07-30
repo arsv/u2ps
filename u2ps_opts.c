@@ -296,6 +296,15 @@ void set_size(char* opt)
 		fontsize = 100*sz;
 }
 
+/* Fonts are specified as either fontsets or explicit keyed fonts:
+
+	-f FreeMono             sets regular, bold, italic and bolditalic
+	                        using fontvariant[] table
+	-fI:Courier-Oblique     sets italic (I) font only
+
+   When setting several fontsets, only the entries not set by that time
+   are filled. */
+
 static void set_font_keyed(const char* opt);
 static void set_font_named(const char* opt);
 
@@ -307,10 +316,9 @@ void set_font(char* opt)
 		set_font_named(opt);
 }
 
-void set_font_keyed(const char* opt)
+struct font* get_keyed_font(const char* opt)
 {
 	const char* key;
-	const char* name = opt + 2;
 
 	for(key = fontkeys; *key; key++)
 		if(opt[0] == *key)
@@ -318,8 +326,13 @@ void set_font_keyed(const char* opt)
 	if(!key)
 		die("unknown font key: %s\n", opt);
 
-	struct font* f = &fonts[key - fontkeys];
+	return &fonts[key - fontkeys];
+}
 
+void set_font_keyed(const char* opt)
+{
+	const char* name = opt + 2;
+	struct font* f = get_keyed_font(opt);
 	f->name = name;
 }
 
@@ -334,8 +347,14 @@ void set_font_named(const char* opt)
 		die("unknown font set: %s\n", opt);
 
 	const char** s;
-	for(s = v->fonts; *s; s++)
-		set_font_keyed(*s);
+	bool setsomething = NO;
+	for(s = v->fonts; *s; s++) {
+		struct font* f = get_keyed_font(*s);
+		if(f->name) continue;
+		setsomething = YES;
+		f->name = *s + 2;
+	} if(!setsomething)
+		warn("fontset %s unused\n", opt);
 }
 
 /* Font and terminal size settings are heavily interconnected: we need
