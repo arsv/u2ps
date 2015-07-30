@@ -5,12 +5,19 @@ with emphasis on Unicode support.
 
 Key features:
 
-* wide-range unicode support via font sets (see rxvt-unicode);
-  u2ps does not depend on a single font to provide the whole range
 * unicode support implemented in PostScript
 * clean, readable and reasonably small output files
 * font subset embedding for Type 1 and Type 42 (TTF) fonts
 * ANSI control sequences support (color and font variants)
+
+Things missing at present (and possibly ever):
+
+- proper combining mark positioning
+- reordering and ligatures
+- bidi support
+
+As long as the input does not stray too far from common ltr scripts
+and usable font(s) are available, u2ps should work well.
 
 
 Installation
@@ -22,6 +29,9 @@ be available at runtime.
 	./configure --prefix=...
 	make
 	make install
+
+Unless told otherwise, u2ps defaults to FreeMono font.
+Make sure you have it installed.
 
 For hacking/debugging, run "./configure devel" instead, the resulting
 executable will work right from the source directory.
