@@ -16,10 +16,14 @@
 /: { /TTAG exch def } def
 /:: { mark } def
 
+/EQ <<
+	/arraytype { arrayeq }
+	/dicttype { dicteq }
+>> def
+
 /deepeq { {
 	1 index type 1 index type ne { pop pop false exit } if
-	dup type /arraytype eq { arrayeq exit } if
-	eq exit	
+	dup type EQ exch .knownget { exec } { eq } ifelse exit
 } loop } def
 
 /arrayeq {
@@ -32,6 +36,22 @@
 			deepeq { pop } { pop pop false exit } ifelse
 		} for exch pop exch pop
 	} ifelse	
+} def
+
+/dicteq {
+	dup 2 index dictsemieq
+	3 1 roll dictsemieq and
+} def
+
+% dict dict -> TF
+/dictsemieq {
+	true exch {		% dict T k v
+		3 index 2 index .knownget {
+			deepeq { pop } { pop pop false exit } ifelse
+		} {
+			pop pop pop false exit
+		} ifelse
+	} forall exch pop
 } def
 
 /TEST { {

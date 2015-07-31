@@ -18,6 +18,10 @@
 (7): 1         [1 2 3]    deepeq false?
 (8): null      null       deepeq true?
 
+(D1): <</a 1 /b 2>> <</a 1 /b 2>> deepeq true?
+(D2): <</a 1 /b 2>> <</a 2 /b 1>> deepeq false?
+(D3): <</a 1>> <</a 1 /b 2>> deepeq false?
+
 % Second part, check TEST itself
 
 (P1): 1 3 add :: 4 TEST	% pass
