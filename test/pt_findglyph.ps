@@ -20,6 +20,12 @@
 	16#0065 /e
 >> def
 
+% For given codepoints, findglyph should be able to tell whether
+% currentfont provides any of the possible glyph names.
+%
+% codepoint ushow.findglyph codepoint false
+% codepoint ushow.findglyph codepoint /glyphname true
+
 (x): 16#0078 ushow.findglyph :: 16#0078 false TEST
 (a): 16#0061 ushow.findglyph :: 16#0061 /a true TEST
 (b): 16#0062 ushow.findglyph :: 16#0062 /b true TEST
