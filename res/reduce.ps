@@ -96,16 +96,17 @@ end
 } def
 
 % gcode-table -> -
-/run-reduce-lga {
-	(%%IncludeResource: category Unidata\n) print
-	(%%BeginResource: unidata Lga\n) print
-	/Lga/Unidata findresource exch			% Lga GT
-	(/Lga <<\n) print
-	256 string exch {				% Lga buf code T
-		pop % always true			% Lga buf code
-		2 index 1 index .knownget {		% GT Lga buf code [ glyphs ]
+/run-reduce-rgl {
+	(%%BeginResource: procset unidata\n) print
+	/unidata/ProcSet findresource
+	/ReverseGlyphList get exch			% RGL GT
+	(2 dict dup begin\n) print
+	(/ReverseGlyphList <<\n) print
+	256 string exch {				% RGL buf code T
+		pop % always true			% RGL buf code
+		2 index 1 index .knownget {		% RGL buf code [ glyphs ]
 			(\t16#) print
-			exch 16 3 index cvrs print	% GT Lga buf [ glyphs ]
+			exch 16 3 index cvrs print	% RGL buf [ glyphs ]
 			( ) print
 			dup type /arraytype eq {
 				([ ) print {		% buf glyph
@@ -114,11 +115,12 @@ end
 			} {
 				(/) print 1 index cvs print (\n) print
 			} ifelse
-		} {					% GT Lga buf code
+		} {					% RGL buf code
 			pop
 		} ifelse
 	} forall pop
-	(>> /Unidata defineresource pop\n) print
+	(>> def\n) print
+	(end /unidata exch /ProcSet defineresource pop\n) print
 	(%%EndResource\n) print
 } def
 
@@ -159,8 +161,8 @@ end
 } def
 
 % - -> -
-/reduce-lga {
-	systemdict /gcode-table .knownget { dup length 0 gt { run-reduce-lga } if } if
+/reduce-rgl {
+	systemdict /gcode-table .knownget { dup length 0 gt { run-reduce-rgl } if } if
 } def
 
 % - -> -

@@ -1,7 +1,6 @@
 (pt.ps) run
 (../res/fstat.ps) run
-(../res/Unidata/Lga) run
-/Lga/Lga/Unidata findresource def
+/unidata/ProcSet findresource { def } forall
 
 % Simulate glyphshow for two different codepoints, making sure
 % noteunicode does not leave any stuff on the stack

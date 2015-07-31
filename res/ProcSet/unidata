@@ -1,9 +1,14 @@
-%!PS-Adobe-3.0 Resource-Unidata
+%!PS-Adobe-3.0 Resource-ProcSet
 
 % Reversed Adobe Glyph List
 % (perhaps should be constructed on the fly?..)
 
-/Lga <<
+% Note this is not really a *proc*set! And not a set, for that matter.
+% Too bad handling this properly requires a dedicated category and
+% a whole bunch of code in psfrem -- all for one simple dictionary.
+
+2 dict dup begin
+/ReverseGlyphList <<
 	16#0001 /controlSTX
 	16#0002 /controlSOT
 	16#0003 /controlETX
@@ -3851,4 +3856,6 @@
 	16#FFE3 /macronmonospace
 	16#FFE5 /yenmonospace
 	16#FFE6 /wonmonospace
->> /Unidata defineresource pop
+>> def
+end /unidata exch /ProcSet defineresource pop
+%%EndResource

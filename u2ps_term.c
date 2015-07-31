@@ -150,10 +150,9 @@ void new_file(void)
 	psline("%%%%EndComments\n");
 
 	psline("%%%%BeginProlog\n");
-	psline("%%%%IncludeResource: category Unidata\n");
+	psline("%%%%IncludeResource: procset unidata\n");
 	psline("%%%%IncludeResource: procset unifont\n");
 	psline("%%%%IncludeResource: procset uniterm\n");
-	psline("%%%%IncludeResource: unidata Lga\n");
 	psline("%%%%EndProlog\n");
 	
 	put_global_setup();

@@ -82,7 +82,7 @@
 	currentfont /CharStrings get false			% uni CS F
 
 	[ 3 index ushow.uniname					% uni CS F [ un
-	  Lga 5 index .knownget {				% uni CS F [ un nns
+	  ReverseGlyphList 5 index .knownget {			% uni CS F [ un nns
 		dup type /arraytype eq { aload pop } if		% uni CS F [ un n n ...
 	  } if
 	] {							% uni CS F name

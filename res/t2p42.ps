@@ -19,13 +19,13 @@
 /printf/ProcSet findresource { def } forall
 /recode/ProcSet findresource { def } forall
 /unpack/ProcSet findresource { def } forall
+/unidata/ProcSet findresource { def } forall
 /reduce.bstr/ProcSet findresource { def } forall
 
 % ------------------------------------------------------------------------------
 
 /MacRomanEncoding dup /Encoding findresource def
 /Encoding/ISOLatin1Encoding/Encoding findresource def
-/Lga dup /Unidata findresource def
 
 /os_2 (OS/2) cvn def
 /cvt_ (cvt ) cvn def
@@ -419,7 +419,7 @@
 } def
 
 /charname {
-	dup Lga exch .knownget {
+	dup ReverseGlyphList exch .knownget {
 		exch pop
 		dup type /arraytype eq { 0 get } if
 	} {

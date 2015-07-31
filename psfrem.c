@@ -65,8 +65,8 @@ void run_reduce(char* inputname, char* statsname)
 		fprintf(ctrl, "/%s false mark-font\n", *p++);
 	if((p = includefonts.list)) while(*p)
 		fprintf(ctrl, "/%s true mark-font\n", *p++);
-	fprintf(ctrl, "reduce-lga\n");
 	fprintf(ctrl, "reduce-fonts\n");
+	fprintf(ctrl, "reduce-rgl\n");
 	fclose(ctrl);
 
 	int status = 0;
