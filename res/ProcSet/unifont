@@ -127,7 +127,8 @@
 % code /glyph ->
 
 /ushow.printglyph {
-	glyphshow pop	% TODO stats
+	systemdict /noteunicode .knownget { 2 index exch exec } if
+	glyphshow pop
 } def
 
 % Well $code is not in currentfont, so got to print notdef instead.

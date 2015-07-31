@@ -95,72 +95,31 @@ end
 	exch pop						% ret
 } def
 
-%% font -> t|f
-%/write-font-file {
-%	<< [ /rangecheck /invalidfileaccess /undefinedfilename ] {
-%		dup errordict exch get def
-%	} forall >>						% font serr
-%
-%	errordict begin
-%		/rangecheck { pop null } def
-%		/invalidfileaccess { pop null } def
-%		/undefinedfilename { pop null } def
-%	end
-%								% serr font
-%	exch {							% serr font
-%		dup /PathLoad .knownget not { false exit } if	% serr font PathLoad
-%		dup (.pfa) has-suffix not { pop false exit } if	% serr font PathLoad
-%		(r) file dup null eq { pop false exit } if	% serr font file
-%		1 index /FontName get (%%BeginResource: font ) print =string cvs print (\n) print
-%		write-font-file-pass
-%		(%%EndResource\n) print
-%		true exit
-%	} loop							% serr font ret
-%	exch pop						% serr ret
-%
-%	exch { errordict 3 1 rotate put } forall		% ret
-%} def
-
-% This has been moved to the calling script for now
-%% file -> -
-%/write-font-file-pass {
-%	2048 string {				% file buf
-%		1 index 1 index readline	% file buf buf tf
-%		exch dup null eq {		% file buf tf buf
-%			pop 1 index print
-%		} {				% file buf tf buf
-%			dup length 1 lt
-%			1 index (%%) has-prefix or
-%			1 index (%!) has-prefix or {
-%				pop
-%			} {
-%				print (\n) print
-%			} ifelse
-%		} ifelse			% file buf tf
-%		not { exit } if
-%	} loop pop pop
-%} def
-
 % gcode-table -> -
-/run-reduce-agl {
+/run-reduce-lga {
 	(%%IncludeResource: category Unidata\n) print
-	(%%BeginResource: unidata Agl\n) print
-	(/Agl <<\n) print
-	256 string exch
-	/Agl/Unidata findresource {		% buf code-table glyphname code
-		2 index 1 index known {		% buf code-table glyphname code
-			exch
-			% Could have used printf here, but printf does rw operations
-			% on compound objects and global/local switching becomes tedious.
-			(\t/) print 3 index cvs print
-			( ) print 2 index cvs print
-			(\n) print
-		} {
-			pop pop
+	(%%BeginResource: unidata Lga\n) print
+	/Lga/Unidata findresource exch			% Lga GT
+	(/Lga <<\n) print
+	256 string exch {				% Lga buf code T
+		pop % always true			% Lga buf code
+		2 index 1 index .knownget {		% GT Lga buf code [ glyphs ]
+			(\t16#) print
+			exch 16 3 index cvrs print	% GT Lga buf [ glyphs ]
+			( ) print
+			dup type /arraytype eq {
+				([ ) print {		% buf glyph
+					(/) print 1 index cvs print
+				} forall ( ]\n) print
+			} {
+				(/) print 1 index cvs print (\n) print
+			} ifelse
+		} {					% GT Lga buf code
+			pop
 		} ifelse
-	} forall
+	} forall pop
 	(>> /Unidata defineresource pop\n) print
-	(%%EndResource\n) print pop pop
+	(%%EndResource\n) print
 } def
 
 /run-reduce-fonts {
@@ -200,8 +159,8 @@ end
 } def
 
 % - -> -
-/reduce-agl {
-	systemdict /gcode-table .knownget { dup length 0 gt { run-reduce-agl } if } if
+/reduce-lga {
+	systemdict /gcode-table .knownget { dup length 0 gt { run-reduce-lga } if } if
 } def
 
 % - -> -

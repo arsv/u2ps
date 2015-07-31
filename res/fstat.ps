@@ -57,7 +57,15 @@ systemdict begin
 } def
 
 % Note all unicode points that were used
-/fontset.stat.glyph { dup systemdict /gcode-table get exch true put } def
+% With gcode-table in systemdict(G) and Lga in userdict(L) at best,
+% we cannot copy any compound values from Lga to gcode-table.
+% So instead we put plain true values there and load Lga later
+% in run-reduce-lga
+
+% code -> -
+/noteunicode {
+	systemdict /gcode-table get exch true put % GT code
+} def
 
 % Disable Type 1 font protection
 /executeonly {  } bind def
