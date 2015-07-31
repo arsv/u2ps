@@ -1,5 +1,0 @@
-% Format:
-% /fontname (path-to-font-file.pfa) ;
-% /fontname /alias ;
-
-/notdef			(fonts/notdef.pfa) ;
