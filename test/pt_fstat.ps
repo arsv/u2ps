@@ -1,0 +1,15 @@
+(pt.ps) run
+(../res/fstat.ps) run
+(../res/Unidata/Lga) run
+/Lga/Lga/Unidata findresource def
+
+% Simulate glyphshow for two different codepoints, making sure
+% noteunicode does not leave any stuff on the stack
+
+(N1): 16#0063 noteunicode :: TEST
+(N2): 16#0451 noteunicode :: TEST
+(N3): 16#0451 noteunicode :: TEST
+
+% Now both codepoints should be in gcode-table
+
+(GT): gcode-table :: << 16#0063 true 16#0451 true >> TEST

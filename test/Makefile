@@ -3,6 +3,9 @@ include ../config.mk
 CFLAGS += -I.. -Dstatic= -ffunction-sections
 LDFLAGS += -Wl,-z,muldefs
 
+GS = gs
+GSFLAGS = -sDEVICE=nullpage -dBATCH -dQUIET -I../res
+
 CTESTS = ct_strecat ct_deutf ct_takecsi ct_u2opts ct_fonts1 ct_fonts2
 PTESTS = pt_deutf pt_findglyph pt_rangew pt_substcode pt_uniname pt_ushow
 
@@ -19,7 +22,7 @@ clean:
 	rm -f $(CTESTS)
 
 pt_%.out: pt_%.ps
-	gs -I../res -sDEVICE=nullpage -dBATCH $< > $@
+	$(GS) $(GSFLAGS) $< > $@
 	@grep -q FAIL $@ && (cat $@; rm $@) || true
 
 ct_%.out: ct_%
@@ -57,3 +60,5 @@ ct_u2opts: ct_u2opts.o u2ps_opts.o u2ps_data.o warn.o
 
 ct_fonts1: ct_fonts1.o u2ps_opts.o u2ps_data.o globals.o warn.o
 ct_fonts2: ct_fonts2.o u2ps_opts.o u2ps_data.o globals.o warn.o
+
+pt_fstat.out: GSFLAGS += -dWRITESYSTEMDICT
