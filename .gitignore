@@ -12,3 +12,4 @@ test/*
 !test/*.h
 !test/*.ps
 !test/*.sh
+!test/*.chk
