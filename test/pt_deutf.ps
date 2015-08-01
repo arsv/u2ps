@@ -2,8 +2,6 @@
 (../res/ProcSet/unifont) run
 /unifont/ProcSet findresource { def } forall
 
-/deutfx { deutf aload pop } def
-
-(lat): (abc) deutfx :: 16#0061 16#0062 16#0063 TEST
-(cyr): (абв) deutfx :: 16#0430 16#0431 16#0432 TEST
-(dbl): (￠) deutfx :: 16#FFE0 TEST
+(lat): (abc) deutf :: [ 16#0061 16#0062 16#0063 ] TEST
+(cyr): (абв) deutf :: [ 16#0430 16#0431 16#0432 ] TEST
+(dbl): (￠) deutf :: [ 16#FFE0 ] TEST
