@@ -35,6 +35,9 @@ const struct fontaspect fontaspects[] = {
 
 const char fontkeys[] = "RIBO";	/* should match enum { REGULAR, ... } from u2ps.h */
 
+static const char* Courier[] =
+	{ "R:Courier", "B:Courier-Bold", "I:Courier-Oblique",
+	  "O:Courier-BoldOblique", NULL };
 static const char* FreeMono[] =
 	{ "R:FreeMono", "B:FreeMonoBold", "I:FreeMonoOblique",
 	  "O:FreeMonoBoldOblique", NULL };
@@ -50,6 +53,7 @@ static const char* FiraMono[] =
 	{ "R:FiraMono-Regular", "B:FiraMono-Bold", NULL };
 
 const struct fontvariant fontvariants[] = {
+	{ "Courier",	Courier },
 	{ "FreeMono",	FreeMono },
 	{ "DejaVu",	DejaVu },
 	{ "EnvyCodeR",	EnvyCodeR },
