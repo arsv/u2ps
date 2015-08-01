@@ -31,6 +31,7 @@ const struct fontaspect fontaspects[] = {
 	{ "DejaVuSansMono",	602 },
 	{ "MesloLGM",		602 },
 	{ "EnvyCodeR",		537 },
+	{ "Iosevka",		500 },
 	{ NULL,			600 }
 };
 
@@ -58,6 +59,8 @@ static const char* RobotoMono[] =
 static const char* Meslo[] =
 	{ "R:MesloLGM-Regular", "B:MesloLGM-Bold",
 	  "I:MesloLGM-Italic", "O:MesloLGM-BoldItalic", NULL };
+static const char* Iosevka[] =
+	{ "R:Iosevka", "B:Iosevka-Bold", "I:Iosevka-Italic", "O:Iosevka-BoldItalic", NULL };
 
 const struct fontvariant fontvariants[] = {
 	{ "Courier",	Courier },
@@ -68,5 +71,6 @@ const struct fontvariant fontvariants[] = {
 	{ "FiraMono",	FiraMono },
 	{ "RobotoMono",	RobotoMono },
 	{ "Meslo",	Meslo },
+	{ "Iosevka",	Iosevka },
 	{ NULL }
 };
