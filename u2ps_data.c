@@ -29,6 +29,7 @@ const struct papersize papersize[] = {
 
 const struct fontaspect fontaspects[] = {
 	{ "DejaVuSansMono",	602 },
+	{ "MesloLGM",		602 },
 	{ "EnvyCodeR",		537 },
 	{ NULL,			600 }
 };
@@ -54,6 +55,9 @@ static const char* FiraMono[] =
 static const char* RobotoMono[] =
 	{ "R:RobotoMono-Regular", "B:RobotoMono-Bold",
 	  "I:RobotoMono-Italic", "O:RobotoMono-BoldItalic", NULL };
+static const char* Meslo[] =
+	{ "R:MesloLGM-Regular", "B:MesloLGM-Bold",
+	  "I:MesloLGM-Italic", "O:MesloLGM-BoldItalic", NULL };
 
 const struct fontvariant fontvariants[] = {
 	{ "Courier",	Courier },
@@ -63,5 +67,6 @@ const struct fontvariant fontvariants[] = {
 	{ "Liberation",	Liberation },
 	{ "FiraMono",	FiraMono },
 	{ "RobotoMono",	RobotoMono },
+	{ "Meslo",	Meslo },
 	{ NULL }
 };
