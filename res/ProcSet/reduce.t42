@@ -470,7 +470,7 @@ end
 % - -> [ XUID ]
 /make-dst-xuid {
 	src-font /XUID .knownget not {
-		% where did these numbers came from?..
+		% where did these numbers come from?..
 		[ 107 42 realtime ]
 	} if
 	dup length array copy
