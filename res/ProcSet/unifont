@@ -164,6 +164,9 @@
 	16#309D 16#4DB5 2 ushow.rangew
 	16#4E00 16#9FC3 2 ushow.rangew
 	16#A000 16#A4C6 2 ushow.rangew
+	16#0E31 16#0E31 0 ushow.rangew	% Thai combining
+	16#0E34 16#0E3A 0 ushow.rangew	% Thai combining
+	16#0E47 16#0E4E 0 ushow.rangew	% Thai combining
 	pop 1 exit
 } loop } def
 
