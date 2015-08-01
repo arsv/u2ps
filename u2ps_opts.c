@@ -436,6 +436,19 @@ void set_termfontsize(int tw, int th)
 			tw, th, fontsize, genopts.cols, genopts.rows);
 }
 
+static int font_name_match(const char* key, const char* font)
+{
+	int lk = strlen(key);
+	int lf = strlen(font);
+
+	if(lf < lk)
+		return 0;
+	if(strncmp(key, font, lk))
+		return 0;
+
+	return (!font[lk] || font[lk] == '-');
+}
+
 void set_font_aspects(void)
 {
 	int i;
@@ -448,8 +461,8 @@ void set_font_aspects(void)
 		if(!fi->name || fi->aspect)
 			continue;
 		for(a = fontaspects; a->name; a++)
-			if(!strcmp(a->name, fi->name))
-				fi->aspect = a->aspect;
+			if(font_name_match(a->name, fi->name))
+				break;
 		fi->aspect = a->aspect;
 	}
 
@@ -471,5 +484,9 @@ void set_font_sizes(void)
 			continue;
 
 		fi->xscale = 1000*fontaspect/fi->aspect;
+
+		if(verbose)
+			warn("Font %c aspect %icpt xscale %imil name %s\n",
+				fontkeys[i], fi->aspect, fi->xscale, fi->name);
 	}
 }
