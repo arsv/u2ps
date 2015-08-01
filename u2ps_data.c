@@ -51,6 +51,9 @@ static const char* Liberation[] =
 	  "I:LiberationSans-Italic", "O:LiberationSans-BoldItalic", NULL };
 static const char* FiraMono[] =
 	{ "R:FiraMono-Regular", "B:FiraMono-Bold", NULL };
+static const char* RobotoMono[] =
+	{ "R:RobotoMono-Regular", "B:RobotoMono-Bold",
+	  "I:RobotoMono-Italic", "O:RobotoMono-BoldItalic", NULL };
 
 const struct fontvariant fontvariants[] = {
 	{ "Courier",	Courier },
@@ -59,5 +62,6 @@ const struct fontvariant fontvariants[] = {
 	{ "EnvyCodeR",	EnvyCodeR },
 	{ "Liberation",	Liberation },
 	{ "FiraMono",	FiraMono },
+	{ "RobotoMono",	RobotoMono },
 	{ NULL }
 };
