@@ -128,7 +128,11 @@
 
 /ushow.printglyph {
 	systemdict /noteunicode .knownget { 2 index exch exec } if
-	glyphshow pop
+	exch ushow.substcode 0 gt {
+		glyphshow
+	} {
+		gsave glyphshow grestore
+	} ifelse
 } def
 
 % Well $code is not in currentfont, so got to print notdef instead.
@@ -174,16 +178,5 @@
 		pop pop pop
 	} ifelse
 } def
-
-% Is a combining character?
-% Used to reset width, see doc/utf.txt for explaination. This a dirty workaround.
-%	codepoint -> t|f
-/uiscombining { {
-	dup dup 16#0300 ge exch 16#036F le and { true exit } if
-	dup dup 16#20D0 ge exch 16#20EF le and { true exit } if
-	dup dup 16#0483 ge exch 16#0489 le and { true exit } if
-	dup dup 16#0591 ge exch 16#05A1 le and { true exit } if
-	usubst.table 1 index .knownget { /.notdefc eq } { false } ifelse exit
-} loop exch pop } def
 
 currentdict end /unifont exch /ProcSet defineresource pop
