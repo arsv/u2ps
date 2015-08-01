@@ -8,6 +8,7 @@ static void findfont(const char* var, const struct font* f);
 void put_global_setup(void)
 {
 	psline("%%%%BeginSetup\n");
+	psline("/gscompat/ProcSet findresource { def } forall\n");
 	psline("/unidata/ProcSet findresource { def } forall\n");
 	psline("/unifont/ProcSet findresource { def } forall\n");
 	psline("/uniterm/ProcSet findresource { def } forall\n");

@@ -150,6 +150,7 @@ void new_file(void)
 	psline("%%%%EndComments\n");
 
 	psline("%%%%BeginProlog\n");
+	psline("%%%%IncludeResource: procset gscompat\n");
 	psline("%%%%IncludeResource: procset unidata\n");
 	psline("%%%%IncludeResource: procset unifont\n");
 	psline("%%%%IncludeResource: procset uniterm\n");
