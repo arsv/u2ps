@@ -5,7 +5,7 @@ with emphasis on Unicode support.
 
 Key features:
 
-* unicode support implemented in PostScript
+* utf8 support implemented in PostScript
 * clean, readable and reasonably small output files
 * font subset embedding for Type 1 and Type 42 (TTF) fonts
 * ANSI control sequences support (color and font variants)
