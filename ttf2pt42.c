@@ -53,7 +53,7 @@ int main(int argc, char** argv)
 	gs[gsi++] = "-sDEVICE=nullpage";
 	gs[gsi++] = "-dQUIET";
 	gs[gsi++] = "-dNOPAUSE";
-	gs[gsi++] = "-I" BASE "/ps";
+	gs[gsi++] = "-I" BASE;
 
 	for(i = 1; i < argc; i++)
 		if(argv[i][0] != '-')
@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 		openoutresuffix(ttf, ".ttf", ".pfa");
 
 	gs[gsi++] = "--";
-	gs[gsi++] = BASE "/ps/t2p42.ps";
+	gs[gsi++] = BASE "/t2p42.ps";
 	gs[gsi++] = ttf;
 	gs[gsi++] = NULL;
 
