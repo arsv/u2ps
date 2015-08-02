@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 #include "u2ps.h"
 #include "warn.h"
@@ -137,36 +136,14 @@ int take_uni(char* ptr)
 
 void new_file(void)
 {
-	time_t now = time(NULL);
-
-	psline("%%!PS-Adobe-2.0\n");
-	psline("%%%%BoundingBox: 0 0 %i %i\n", pagelayout.pw, pagelayout.ph);
-	psline("%%%%Orientation: %s\n", genopts.landscape ? "Landscape" : "Portrait");
-	if(genopts.title)
-		psline("%%%%Title: %s\n", genopts.title);
-	psline("%%%%Pages: (atend)\n");
-	psline("%%%%Creator: u2ps\n");
-	psline("%%%%CreationDate: %s", ctime(&now)); /* ctime output includes \n! */
-	psline("%%%%EndComments\n");
-
-	psline("%%%%BeginProlog\n");
-	psline("%%%%IncludeResource: procset gscompat\n");
-	psline("%%%%IncludeResource: procset unidata\n");
-	psline("%%%%IncludeResource: procset unifont\n");
-	psline("%%%%IncludeResource: procset uniterm\n");
-	psline("%%%%EndProlog\n");
-	
-	put_global_setup();
-
+	put_ps_init();
 	hardline = genopts.startline;
 }
 
 void end_file(void)
 {
 	end_page();
-	psline("%%%%Trailer\n");
-	psline("%%%%Pages: %i\n", page);
-	psline("%%%%EOF\n");
+	put_ps_fini(page);
 }
 
 void new_line(enum linebreak soft)

@@ -105,3 +105,6 @@ void psstr(const char* string);
 /* u2ps_file.c */
 char* preptemplate(const char* template);
 FILE* fmkstemps(char* template, int suffixlen);
+
+void put_ps_init(void);
+void put_ps_fini(int pages);

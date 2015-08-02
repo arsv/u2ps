@@ -1,11 +1,47 @@
+#include <time.h>
 #include "u2ps.h"
 
-extern void psnl(int blanks);
-extern void psline(const char* line, ...);
+/* PostScript prologue does not depends on the terminal state
+   at all, only on the command line options, so it is kept
+   here and out of _term* files.
 
+   The functions are still called from _term.c, because there
+   is some terminal setup to do before starting and finishing
+   the output file. */
+
+static void put_ps_prolog(void);
+static void put_ps_setup(void);
 static void findfont(const char* var, const struct font* f);
 
-void put_global_setup(void)
+void put_ps_init(void)
+{
+	time_t now = time(NULL);
+
+	psline("%%!PS-Adobe-2.0\n");
+	psline("%%%%BoundingBox: 0 0 %i %i\n", pagelayout.pw, pagelayout.ph);
+	psline("%%%%Orientation: %s\n", genopts.landscape ? "Landscape" : "Portrait");
+	if(genopts.title)
+		psline("%%%%Title: %s\n", genopts.title);
+	psline("%%%%Pages: (atend)\n");
+	psline("%%%%Creator: u2ps\n");
+	psline("%%%%CreationDate: %s", ctime(&now)); /* ctime output includes \n! */
+	psline("%%%%EndComments\n");
+
+	put_ps_prolog();
+	put_ps_setup();
+};
+
+void put_ps_prolog(void)
+{
+	psline("%%%%BeginProlog\n");
+	psline("%%%%IncludeResource: procset gscompat\n");
+	psline("%%%%IncludeResource: procset unidata\n");
+	psline("%%%%IncludeResource: procset unifont\n");
+	psline("%%%%IncludeResource: procset uniterm\n");
+	psline("%%%%EndProlog\n");
+}
+
+void put_ps_setup(void)
 {
 	psline("%%%%BeginSetup\n");
 	psline("/gscompat/ProcSet findresource { def } forall\n");
@@ -80,4 +116,11 @@ void findfont(const char* name, const struct font* f)
 	else
 		psline("/%s /%s %i cpt fontcmd def\n",
 				name, f->name, fontsize);
+}
+
+void put_ps_fini(int pages)
+{
+	psline("%%%%Trailer\n");
+	psline("%%%%Pages: %i\n", pages);
+	psline("%%%%EOF\n");
 }
