@@ -1,0 +1,40 @@
+Ideas re. BiDi support
+~~~~~~~~~~~~~~~~~~~~~~
+The goal is to have bidi working *and* bidi text still properly readable
+in the PS source. Which means RTL text must be in logical order and there
+must be some reordering implemented in PS.
+
+Here's how I see the output should look like:
+
+    (Some ltr text )u 34 fg (אבו)r ( 123 )u (דבא)r ( some more ltr text)u
+
+u=ushow and r=rshow; rshow would be like ushow but would reorder its argument,
+dropping any direction-control characters.
+
+This way, the complex reordering algorithm would reside mostly in the C code,
+and it would be possible to use RTL- and LTR-override to force proper source
+display without breaking the rendered view.
+
+Current idea is to parse incoming stream into
+
+	struct {
+		int codepoint;
+		struct termattr attr; /* color, font etc */
+		short bidilevel;
+		bool rtl;
+	} scanline[];
+
+reorder scanline[] in place, split it into runs of same attr-level/rtl
+values, reorder those with rtl bit set back, and print (as in doing ()u or ()r)
+each run separately.
+
+The PS code in turn will only have to deal with simple one-level reordering,
+and even that would be explicit (rshow vs ushow).
+RTL combining mark handling must still remain within PS, partially because ()r
+blocks would look wrong otherwise, and partially because mark positioning code
+will be in PS anyway as far as I see it.
+
+
+References
+~~~~~~~~~~
+http://www.unicode.org/reports/tr9/
