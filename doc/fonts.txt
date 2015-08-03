@@ -18,26 +18,3 @@ it should be something like this:
 You may wish to put font file is some other location,
 or perhaps use a font from a different location.
 Skip #1 and add full path to Fontmap, it should work right away.
-
-
-Editing fontsets
-~~~~~~~~~~~~~~~~
-For u2ps to actually use a new font, you will have to edit fontsets
-as well. Check /usr/share/u2ps/FontSet/* files for syntax and structure.
-Generally you need to add a key to the first dictionary:
-
-	<<
-		/base  		{ /FreeMono .... }
-		...
-		/newfont 	{ /NewFont findfont }
-	>>
-
-and list character ranges the font should be checked for:
-
-	[
-		[ 16#0000 16#303F /base ]
-		...
-		[ 16#F000 16#F100 /newfont ]
-	] makefontset
-
-Ranges are checked top-to-bottom, so make sure you have no unplanned range overlaps.
