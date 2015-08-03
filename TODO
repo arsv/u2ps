@@ -1,17 +1,17 @@
-Procset reduction
-~~~~~~~~~~~~~~~~~
-Gather data on the part of uniterm / fontset used, either in u2ps or in psfrem,
-and cut unused parts at psfrem stage.
+* Bi-directional text.
+  See doc/bidi.txt and http://www.unicode.org/reports/tr9/
 
+* Proper combining mark positioning.
+  This surprisingly requires a lot of work, likely including
+  a complete rewrite (and re-design) of the psfrem part.
+  Reserved for version 2.x.
+  See doc/gpos.txt
 
-Bidi support
-~~~~~~~~~~~~
-Starting with some idea on how it should work in context of terminal emulation.
-Also, will likely require procset reduction due to being large but largely-unused
-feature.
+* OpenType fonts support.
+  This is a big question mark since neither GS nor the actual
+  PostScript printers are guaranteed to support OT glyphs.
 
-
-Opentype fonts support
-~~~~~~~~~~~~~~~~~~~~~~
-FreeMono is available in otf format, and otf fonts may smaller
-(but this doesn't apply to FreeMono apparently).
+* u2pdf
+  Generating PDF output directly. This will probably be a different
+  project altogether, *but* a lot of stuff from u2ps should be
+  reusable there.
