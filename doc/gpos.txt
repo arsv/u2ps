@@ -1,0 +1,99 @@
+Advanced glyph positioning
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Long story short: even with monospace fonts, handling combining marks
+requires GPOS table support, and Arabic/Indic scripts need GSUB as well.
+
+PostScript does not support either.
+
+The following is my vision of a hacky way to implement it in u2ps.
+Due to the extent of the changes, this is reserved for u2ps version 2.x.
+
+
+The problem
+~~~~~~~~~~~
+Suppose we need to place a combining acute mark over a and A to get á and Á.
+The position of the mark itself must be different, because the base glyphs
+are of different size.
+
+This is typically done by declaring "anchor points" for the glyphs in question,
+and adjusting mark position to match mark's anchor to that of the base glyph.
+
+PostScript fonts lack this information altogether.
+No proper mark positioning is possible with Type 1 (0, 2, 3) fonts.
+
+TTF (and OTF) have this data in GPOS table, which is not parsed when converting
+the font to Type 42, but which is still available via /sfnts key in the font
+dictionary. However, extracting that data on the fly is too difficult
+in practice, requiring something close to 1/3 of reduce.t42+reduce.bstr code.
+
+The only reasonable solution so far seems to be dropping (parts of) PostScript
+compatibility and providing alternative means to access GPOS data.
+
+
+Looking back: cmap problem
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+The problem with GPOS table is very similar to how "cmap" table is handled now.
+Cmap is { codepoint -> glyph } map which should be used to build CharStrings
+when loading a TTF, providing access to all Unicode characters in the font.
+
+However, it is not used when the font is loaded the usual way via GS.
+Instead, GS relies on "post" table to fill CharStrings, and accessing cmap from
+ushow code via /sfnts is not practical. The "post" table may be missing, as it
+frequently is in CJK fonts, making most of the glyphs in the font inaccessible.
+
+An alternative way to use cmap is converting TTF to Type 42 font with ttf2pt42,
+which is a standalone utility and can get away with a lot of data manipulation.
+ttf2pt42 ignores post and uses cmap data to fill CharStrings.
+
+Having derivative Type 42 fonts laying around is not that good — unless we are
+embedding them immediately into the output file that is.
+
+
+The proposed solution
+~~~~~~~~~~~~~~~~~~~~~
+Let u2ps read TTFs (the actual font files) and write them in Type 42 form to the
+output file. Make it the only supported way to load font, i.e. do not rely on GS
+to load/substitue anything.
+
+This way, u2ps gets complete control over the Type 42 font contents, and can
+get away with not following some PostScript conventions, not caring about corner
+cases, and expect the font to always be well-formed.
+
+With the fonts in full control, the following can be implemented:
+
+  * /CharStrings is { codepoint => glyph-index }, with integer codepoints instead
+    of AGL stuff and /uniNNNN names. This simplifies ushow enormously.
+
+  * /CharStrings is formed from cmap, the same way ttf2pt42 does now.
+
+  * GPOS (and/or GSUB) data can be extracted into some reasonably usable format,
+    like /PairKern = { (codepoint, codepoint) => (x-off, y-off) } for all pairs
+    used in the text, or maybe with anchor points accessible per-glyph.
+
+  * PostScript font rendering can still be used as long as CharString have glyph
+    indexes and /sfnts has glyf/loca tables.
+
+  * With the font data already loaded, u2ps can use the actual glyph metrics
+    instead of guessing them. May or may not be useful, as it breaks the terminal
+    emulator model, but at least it would be possible.
+
+  * With the font data available, fstat is not needed, and there is no need
+    to run gs at all; psfrem becomes an integral part of u2ps.
+
+  * Conditional procset inclusion should be much easier.
+    u2ps is going to be two-pass anyway because of the need to gather glyph
+     stats for font reduction.
+
+There are downsides, too:
+
+  - PostScript fonts can not be used. Font substitution is assumed to never occur.
+    This is ok as long as all fonts are embedded, and reliance on printer-supplied
+    fonts is of little benefit nowadays.
+
+  - Font sharing may be difficult. This only makes sense when several documents
+    are merged into one, so probably not relevant for u2ps.
+    dvips does not handle this problem all that well too.
+
+And as a side note, the proposed structure for u2ps maps exactly to what u2pdf
+would look like. Essentially the structure above describes PDF generator with
+PS output.
