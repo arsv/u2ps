@@ -126,6 +126,8 @@ int take_uni(char* ptr)
 	}
 	softcol += width;
 
+	handle_uni(len > 0 ? codepoint : 0);
+
 	if(len < 0)
 		psbad(len = -len);
 	else

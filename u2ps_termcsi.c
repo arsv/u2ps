@@ -81,6 +81,11 @@ void end_line_attr(void)
 		pscmd("se");
 }
 
+void handle_uni(int codepoint)
+{
+	put_ansi_diff();
+}
+
 void handle_csi(int cmd, int argn, int* args)
 {
 	int a;
@@ -108,8 +113,6 @@ void handle_csi(int cmd, int argn, int* args)
 				 i = j;
 		}
 	}
-
-	put_ansi_diff();
 }
 
 void ansi_reset(void)

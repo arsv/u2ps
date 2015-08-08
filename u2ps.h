@@ -88,6 +88,7 @@ void put_global_setup(void);
 void new_page_attr(void);
 void new_line_attr(void);
 void end_line_attr(void);
+void handle_uni(int codepoint);
 void handle_csi(int cmd, int argc, int* args);
 
 /* u2ps_unicode.c */
