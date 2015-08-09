@@ -38,43 +38,17 @@ const struct fontaspect fontaspects[] = {
 
 const char fontkeys[] = "RIBO";	/* should match enum { REGULAR, ... } from u2ps.h */
 
-static const char* Courier[] =
-	{ "R:Courier", "B:Courier-Bold", "I:Courier-Oblique",
-	  "O:Courier-BoldOblique", NULL };
-static const char* FreeMono[] =
-	{ "R:FreeMono", "B:FreeMonoBold", "I:FreeMonoOblique",
-	  "O:FreeMonoBoldOblique", NULL };
-static const char* DejaVu[] =
-	{ "R:DejaVuSansMono-Regular", "B:DejaVuSansMono-Bold",
-	  "I:DejaVuSansMono-Oblique", "O:DejaVuSansMono-BoldOblique", NULL };
-static const char* EnvyCodeR[] =
-	{ "R:EnvyCodeR", "B:EnvyCodeRBold", "I:EnvyCodeRItalic", NULL };
-static const char* Liberation[] =
-	{ "R:LiberationMono", "B:LiberationSans-Bold",
-	  "I:LiberationSans-Italic", "O:LiberationSans-BoldItalic", NULL };
-static const char* FiraMono[] =
-	{ "R:FiraMono-Regular", "B:FiraMono-Bold", NULL };
-static const char* RobotoMono[] =
-	{ "R:RobotoMono-Regular", "B:RobotoMono-Bold",
-	  "I:RobotoMono-Italic", "O:RobotoMono-BoldItalic", NULL };
-static const char* Meslo[] =
-	{ "R:MesloLGM-Regular", "B:MesloLGM-Bold",
-	  "I:MesloLGM-Italic", "O:MesloLGM-BoldItalic", NULL };
-static const char* Iosevka[] =
-	{ "R:Iosevka", "B:Iosevka-Bold", "I:Iosevka-Italic", "O:Iosevka-BoldItalic", NULL };
-static const char* Unifont[] =
-	{ "R:UnifontMedium", NULL };
+/* The code below does static initialization of a const char* f[][].
+   See comments in u2ps_data.i on why this is needed. */
+
+#define defont(name, ...) \
+	static const char* name[] = { __VA_ARGS__, NULL };
+#include "u2ps_data.i"
+#undef defont
 
 const struct fontvariant fontvariants[] = {
-	{ "Courier",	Courier },
-	{ "FreeMono",	FreeMono },
-	{ "DejaVu",	DejaVu },
-	{ "EnvyCodeR",	EnvyCodeR },
-	{ "Liberation",	Liberation },
-	{ "FiraMono",	FiraMono },
-	{ "RobotoMono",	RobotoMono },
-	{ "Meslo",	Meslo },
-	{ "Iosevka",	Iosevka },
-	{ "Unifont",	Unifont },
+#define defont(name, ...) \
+	{ #name, name },
+#include "u2ps_data.i"
 	{ NULL }
 };
