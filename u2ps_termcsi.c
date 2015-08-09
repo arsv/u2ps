@@ -45,8 +45,6 @@ static struct attr {
 	char* efs;	/* effective font style */
 } curr, next;
 
-extern void pscmd(const char* cmd, ...);
-
 static void ansi_set(int key);
 static void ansi_clr(int key);
 static void ansi_fg(int color);
