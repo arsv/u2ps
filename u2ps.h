@@ -66,7 +66,7 @@ struct font {
 	int xscale;	/* promille */
 };
 
-enum { REGULAR = 0, ITALIC = 1, BOLD = 2, BOLDITALIC = 3, nFONTS };
+enum fontstyle { REGULAR = 0, ITALIC = 1, BOLD = 2, BOLDITALIC = 3, nFONTS };
 
 extern const char* auxfont;
 extern int auxsize;

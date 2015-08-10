@@ -1,4 +1,5 @@
 #include "u2ps.h"
+#include "u2ps_term.h"
 #include "warn.h"
 
 /* CSI mean Control Sequence Introducer, "\033[".
@@ -42,7 +43,8 @@ static struct attr {
 	int flags;
 	int fg, efg;	/* foreground, effective foreground */
 	int bg, ebg;	/* background, effective background */
-	char* efs;	/* effective font style */
+	enum fontstyle efs;	/* effective font style */
+	enum fontstyle cfs;	/* current codepoint-related font style */
 } curr, next;
 
 static void ansi_set(int key);
@@ -52,6 +54,13 @@ static void ansi_bg(int color);
 static void ansi_reset(void);
 
 static void put_ansi_diff(void);
+
+static const char* fontcommands[] = {
+	[REGULAR] = "fR",
+	[BOLD] = "fB",
+	[ITALIC] = "fI",
+	[BOLDITALIC] = "fO"
+};
 
 void new_page_attr(void)
 {
@@ -81,6 +90,17 @@ void end_line_attr(void)
 
 void handle_uni(int codepoint)
 {
+	const struct fontrange* r;
+
+	for(r = fontranges; r->to; r++) {
+		if(codepoint < r->from || codepoint > r->to)
+			continue;
+		if(!(fonts[r->fontstyle].name))
+			continue;
+		next.cfs = r->fontstyle;
+		break;
+	}
+
 	put_ansi_diff();
 }
 
@@ -164,14 +184,16 @@ static void ansi_set_next_evalues(void)
 
 	int bold = (next.flags & BF) | (next.flags & BL) | (next.flags & RB);
 	int italic = (next.flags & IT);
+	if(next.cfs)
+		next.efs = next.cfs;
 	if(bold && italic)
-		next.efs = "fO";
+		next.efs = BOLDITALIC;
 	else if(bold)
-		next.efs = "fB";
+		next.efs = BOLD;
 	else if(italic)
-		next.efs = "fI";
+		next.efs = ITALIC;
 	else
-		next.efs = "fR";
+		next.efs = REGULAR;
 }
 
 static void put_ansi_diff(void)
@@ -179,7 +201,7 @@ static void put_ansi_diff(void)
 	ansi_set_next_evalues();
 
 	if(curr.efs != next.efs)
-		pscmd("%s", next.efs);
+		pscmd("%s", fontcommands[next.efs]);
 
 	if(curr.efg != next.efg) {
 		if(next.efg >= 0)
