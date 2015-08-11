@@ -72,6 +72,7 @@ enum fontstyle {
 	BOLD = 2,
 	BOLDITALIC = 3,
 	CJK = 4,
+	THAI = 5,
 	nFONTS
 };
 

@@ -44,6 +44,7 @@ const char fontkeys[nFONTS+1] = {
 	[ITALIC] = 'I',
 	[BOLDITALIC] = 'O',
 	[CJK] = 'C',
+	[THAI] = 'T',
 	[nFONTS] = '\0'
 };
 
@@ -67,6 +68,7 @@ const struct fontvariant fontvariants[] = {
 const struct fontrange fontranges[] = {
 	{ 0x0000, 0x0370, REGULAR },	/* fast-skip common Latin */
 	{ 0x1E00, 0x1EF9, REGULAR },
+	{ 0x0E00, 0x0E5B, THAI },
 	{ 0x1100, 0x11FF, CJK },	/* Hangul */
 	{ 0x2E80, 0x3400, CJK },	/* aux CJK glyphs */
 	{ 0x3400, 0x4DFF, CJK },	/* rare ideographs */

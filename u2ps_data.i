@@ -64,4 +64,11 @@ defont(Unifont,
 defont(Sawarabi,
         "C:SawarabiGothic-Medium")
 
+defont(Tlwg,
+        "R:TlwgMono",
+        "B:TlwgMono-Bold",
+        "I:TlwgMono-Oblique",
+        "O:TlwgMono-BoldOblique",
+        "T:TlwgMono")
+
 /* vim: set ft=c: */
