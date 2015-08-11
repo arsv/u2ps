@@ -54,14 +54,6 @@ static void ansi_reset(void);
 
 static void put_ansi_diff(void);
 
-static const char* fontcommands[] = {
-	[REGULAR] = "fR",
-	[BOLD] = "fB",
-	[ITALIC] = "fI",
-	[BOLDITALIC] = "fO",
-	[CJK] = "fC"
-};
-
 void new_page_attr(void)
 {
 	next = curr;
@@ -202,7 +194,7 @@ static void put_ansi_diff(void)
 	ansi_set_next_evalues();
 
 	if(curr.efs != next.efs)
-		pscmd("%s", fontcommands[next.efs]);
+		pscmd("f%c", fontkeys[next.efs]);
 
 	if(curr.efg != next.efg) {
 		if(next.efg >= 0)
