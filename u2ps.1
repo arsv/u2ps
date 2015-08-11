@@ -48,10 +48,19 @@ Columns per line.
 Lines per page
 '''
 .SS Fonts setup
-Note unicode printing is done with fontsets, not regular PostScript fonts.
-Check /usr/share/u2ps/ps/FontSet for a list.
-.IP "\fB-f\fR/\fB--font=\fIname\fR" 4
-Primary font set [FreeMono]
+u2ps can switch between regular/bold/italic fonts, and if instructed so, between
+fonts providing different Unicode areas. Fonts are always loaded via Ghostscript,
+and the font names used are PostScript names.
+
+In addition to that, u2ps keeps a built-in list of common font variants.
+For instance, -f FreeMono sets regular, bold and italic fonts at once.
+Still, fontset names are choosen to match base font names closely.
+'''
+.IP "\fB-f\fIname\fR/\fB--font=\fIname\fR" 4
+Primary font set [FreeMono].
+.IP "\fB-f\fIK\fB:\fIname\fR" 4
+Font name for key \fIK\fR; possible key values are: \fBR\fRegular, \fBI\fRtalic,
+\fBB\fRold, \fBO\fR bold italic, \fBC\fRJK characters, \fBT\fRhai.
 .IP "\fB--head-font=\fIname\fR" 4
 Auxilliary font set [Times-Roman]
 .IP "\fB--line-font=\fIname\fR" 4
