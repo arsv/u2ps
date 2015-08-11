@@ -38,15 +38,6 @@ look as close to a real terminal as possible. Can be useful for
 making "terminal screenshots" or rendering ASCII art, but hardly
 suitable for printing.
 '''
-.SS Font size selection
-Use only one of these options. Paper size will be used to determine the other two.
-.IP "\fB-s\fR/\fB--font-size=\fIn\fR" 4
-Font size (pt)
-.IP "\fB-C\fR/\fB--columns=\fIn\fR" 4
-Columns per line.
-.IP "\fB-L\fR/\fB--lines=\fIn\fR" 4
-Lines per page
-'''
 .SS Fonts setup
 u2ps can switch between regular/bold/italic fonts, and if instructed so, between
 fonts providing different Unicode areas. Fonts are always loaded via Ghostscript,
@@ -69,6 +60,27 @@ Font to use for line numbers [Times-Roman]
 Headings font size (pt)
 .IP "\fB--line-font-size=\fIn\fB" 4
 Line numbers font size (pt)
+'''
+.SS Aspect ratio adjustments
+Most monospace fonts have aspect ratio of 0.6, which means printing M in
+10pt font advances caret right by 6pt.
+.IP "\fB-2\fR" 4
+Scale fonts so that terminal cell aspect ratio is 0.5.
+.IP "\fB-1\fR" 4
+Same, for aspect ratio of 1.0 (square characters).
+.P
+Aspect ratio is calculated for single-width characters.
+Double-width glyphs naturally have double that, so -2 mode should
+be used to get square CJK ideographs in the output.
+'''
+.SS Font size selection
+Use only one of these options. Paper size will be used to determine the other two.
+.IP "\fB-s\fR/\fB--font-size=\fIn\fR" 4
+Font size (pt)
+.IP "\fB-C\fR/\fB--columns=\fIn\fR" 4
+Columns per line.
+.IP "\fB-L\fR/\fB--lines=\fIn\fR" 4
+Lines per page
 '''
 .SS Output control options:
 .IP "\fB-l\fR/\fB--numbers\fR" 4
