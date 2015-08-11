@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include "u2ps.h"
 #include "u2ps_data.h"
 
 const struct papersize papersize[] = {
@@ -33,10 +34,18 @@ const struct fontaspect fontaspects[] = {
 	{ "EnvyCodeR",		537 },
 	{ "Iosevka",		500 },
 	{ "UnifontMedium",	500 },
+	{ "SawarabiGothic",	500 },
 	{ NULL,			600 }
 };
 
-const char fontkeys[] = "RIBO";	/* should match enum { REGULAR, ... } from u2ps.h */
+const char fontkeys[nFONTS+1] = {
+	[REGULAR] = 'R',
+	[BOLD] = 'B',
+	[ITALIC] = 'I',
+	[BOLDITALIC] = 'O',
+	[CJK] = 'C',
+	[nFONTS] = '\0'
+};
 
 /* The code below does static initialization of a const char* f[][].
    See comments in u2ps_data.i on why this is needed. */
@@ -51,4 +60,18 @@ const struct fontvariant fontvariants[] = {
 	{ #name, name },
 #include "u2ps_data.i"
 	{ NULL }
+};
+
+/* At present the assumption is that a single font is used for CJK. */
+
+const struct fontrange fontranges[] = {
+	{ 0x0000, 0x0370, REGULAR },	/* fast-skip common Latin */
+	{ 0x1E00, 0x1EF9, REGULAR },
+	{ 0x1100, 0x11FF, CJK },	/* Hangul */
+	{ 0x2E80, 0x3400, CJK },	/* aux CJK glyphs */
+	{ 0x3400, 0x4DFF, CJK },	/* rare ideographs */
+	{ 0x4E00, 0x9FFF, CJK },	/* common ideographs */
+	{ 0xF900, 0xFAFF, CJK },	/* duplicates, unifiable, corporate characters */
+	{ 0xAC00, 0xD7A3, CJK },	/* Hangul */
+	{ 0x0000, 0x0000, 0 }
 };

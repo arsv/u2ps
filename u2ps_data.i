@@ -61,4 +61,7 @@ defont(Iosevka,
 defont(Unifont,
         "R:UnifontMedium")
 
+defont(Sawarabi,
+        "C:SawarabiGothic-Medium")
+
 /* vim: set ft=c: */

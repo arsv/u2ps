@@ -1,6 +1,5 @@
 #include "u2ps.h"
-#include "u2ps_term.h"
-#include "warn.h"
+#include "u2ps_data.h"
 
 /* CSI mean Control Sequence Introducer, "\033[".
    See console_codes(4) for some background.
@@ -59,7 +58,8 @@ static const char* fontcommands[] = {
 	[REGULAR] = "fR",
 	[BOLD] = "fB",
 	[ITALIC] = "fI",
-	[BOLDITALIC] = "fO"
+	[BOLDITALIC] = "fO",
+	[CJK] = "fC"
 };
 
 void new_page_attr(void)
@@ -99,7 +99,8 @@ void handle_uni(int codepoint)
 			continue;
 		next.cfs = r->fontstyle;
 		break;
-	}
+	} if(!r->to)
+		next.cfs = REGULAR;
 
 	put_ansi_diff();
 }
@@ -186,7 +187,7 @@ static void ansi_set_next_evalues(void)
 	int italic = (next.flags & IT);
 	if(next.cfs)
 		next.efs = next.cfs;
-	if(bold && italic)
+	else if(bold && italic)
 		next.efs = BOLDITALIC;
 	else if(bold)
 		next.efs = BOLD;

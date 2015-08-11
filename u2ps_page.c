@@ -1,5 +1,6 @@
 #include <time.h>
 #include "u2ps.h"
+#include "warn.h"
 
 /* PostScript prologue does not depends on the terminal state
    at all, only on the command line options, so it is kept
@@ -11,7 +12,7 @@
 
 static void put_ps_prolog(void);
 static void put_ps_setup(void);
-static void findfont(const char* var, const struct font* f);
+static void findallfonts(void);
 
 void put_ps_init(void)
 {
@@ -28,8 +29,7 @@ void put_ps_init(void)
 	psline("%%%%EndComments\n");
 
 	put_ps_prolog();
-	put_ps_setup();
-};
+	put_ps_setup(); };
 
 void put_ps_prolog(void)
 {
@@ -59,11 +59,7 @@ void put_ps_setup(void)
 
 	psline("/auxfont /%s findfont %i cpt scalefont def\n", auxfont, auxsize);
 
-	findfont("fR", &fonts[REGULAR]);
-	findfont("fB", &fonts[BOLD]);
-	findfont("fI", &fonts[ITALIC]);
-	findfont("fO", &fonts[BOLDITALIC]);
-	psnl(1);
+	findallfonts();
 
 	int landscape = genopts.landscape;
 	psline("%% page size\n");
@@ -106,16 +102,40 @@ void put_ps_setup(void)
 	psline("%%%%EndSetup\n");
 }
 
-void findfont(const char* name, const struct font* f)
+void findallfonts(void)
 {
-	if(!f->name)
-		psline("/%s /fR load def\n", name);
-	else if(f->xscale && f->xscale != 1000)
-		psline("/%s /%s %i cpt %i mil fontcmd def\n",
-				name, f->name, fontsize, f->xscale);
-	else
-		psline("/%s /%s %i cpt fontcmd def\n",
-				name, f->name, fontsize);
+	int i;
+	char key;
+	const struct font* fnt;
+
+	for(i = 0; i < nFONTS; i++) {
+		key = fontkeys[i];
+		fnt = &fonts[i];
+
+		if(!key)
+			continue;
+		if(!fnt->name)
+			switch(i) {
+				case REGULAR:
+					die("Regular font not defined\n");
+				case BOLD:
+				case ITALIC:
+				case BOLDITALIC:
+					psline("/f%c /fR load def\n", key);
+				default:
+					continue;
+			}
+
+		if(fnt->xscale && fnt->xscale != 1000)
+			psline("/f%c /%s %i cpt %i mil fontcmd def\n",
+					key, fnt->name, fontsize, fnt->xscale);
+		else
+			psline("/f%c /%s %i cpt fontcmd def\n",
+					key, fnt->name, fontsize);
+
+	}
+
+	psnl(1);
 }
 
 void put_ps_fini(int pages)

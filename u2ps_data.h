@@ -9,9 +9,13 @@ extern const struct fontaspect {
 	int aspect;	
 } fontaspects[];
 
-extern const char fontkeys[];
-
 extern const struct fontvariant {
 	const char* base;
 	const char** fonts;
 } fontvariants[];
+
+extern const struct fontrange {
+	int from;
+	int to;
+	int fontstyle;
+} fontranges[];

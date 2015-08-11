@@ -66,14 +66,22 @@ struct font {
 	int xscale;	/* promille */
 };
 
-enum fontstyle { REGULAR = 0, ITALIC = 1, BOLD = 2, BOLDITALIC = 3, nFONTS };
+enum fontstyle {
+	REGULAR = 0,
+	ITALIC = 1,
+	BOLD = 2,
+	BOLDITALIC = 3,
+	CJK = 4,
+	nFONTS
+};
 
 extern const char* auxfont;
 extern int auxsize;
 
 extern int fontsize;	/* cpt */
 extern int fontaspect;  /* promille */
-extern struct font fonts[];
+extern struct font fonts[nFONTS];
+extern const char fontkeys[nFONTS+1];
 
 /* u2ps_opts.c */
 void handle_args(int argc, char** argv);
