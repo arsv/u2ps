@@ -329,12 +329,24 @@ struct font* get_keyed_font(const char* opt)
 	return &fonts[key - fontkeys];
 }
 
+/* Direct font setting: -fR:FontName */
+
 void set_font_keyed(const char* opt)
 {
 	const char* name = opt + 2;
 	struct font* f = get_keyed_font(opt);
 	f->name = name;
 }
+
+/* Predefined fontsets: -f FontsetName.
+   Fontsets are looked up in fontvariants[], and all definitions
+   found there are applied in the same way set_font_keyed works.
+
+   One special case is when non-regular font name matches that
+   of the regular font. In this case, we skip the setting,
+   allowing the term to fall back to fR. This is needed to avoid
+   extensive font switching when e.g. Tlwg (which defines both
+   regular *and* Thai ranges) is used as the primary font set. */
 
 void set_font_named(const char* opt)
 {
@@ -348,9 +360,13 @@ void set_font_named(const char* opt)
 
 	const char** s;
 	bool setsomething = NO;
+	struct font* regular = &fonts[REGULAR];
 	for(s = v->fonts; *s; s++) {
 		struct font* f = get_keyed_font(*s);
-		if(f->name) continue;
+		if(f->name)
+			continue;
+		if(f != regular && !strcmp(*s + 2, regular->name))
+			continue;
 		setsomething = YES;
 		f->name = *s + 2;
 	} if(!setsomething)
