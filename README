@@ -19,26 +19,24 @@ Things missing at present:
 The tool should be usable on any reasonably sane system with
 Ghostscript installed.
 
-As long as the input does not stray too far from common ltr scripts
-and usable font(s) are available, u2ps should work well.
+As long as the input does not stray too far from common left-to-right
+scripts and usable fonts are available, u2ps should work well.
 
 Current version is probably the last one using mostly-postscript
-mostly-font-agnostic approach; check TODO for further development
-ideas.
+mostly-font-agnostic approach; check TODO for further development ideas.
 
 
 Installation
 ~~~~~~~~~~~~
 Common C library, make and cc are needed to build u2ps.
-If you want font and resource reduction (you do), ghostscript must
-be available at runtime.
+Font reduction needs ghostscript at runtime.
 
 	./configure --prefix=...
 	make
 	make install
 
 Unless told otherwise, u2ps defaults to FreeMono font.
-Make sure you have it installed.
+Make sure to have it installed.
 
 For hacking/debugging, run "./configure devel" instead, the resulting
 executable will work right from the source directory.
@@ -47,7 +45,7 @@ executable will work right from the source directory.
 Sample usage
 ~~~~~~~~~~~~
 The files in text/ directory may be used as a showcase for u2ps features.
-Assuming you built u2ps in devel mode, run
+Assuming u2ps is built in devel mode, run
 
     ./u2ps text/ansi.txt
     ./u2ps text/alph.txt
@@ -55,8 +53,8 @@ Assuming you built u2ps in devel mode, run
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/alph.txt
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/utf8.txt
 
-The last command assumes you have Kochi-Mincho (http://en.osdn.jp/projects/efont/)
-and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts installed.
+The last command assumes Kochi-Mincho (http://en.osdn.jp/projects/efont/)
+and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts are available.
 
 Sample usage with individual font setting:
 
