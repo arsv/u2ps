@@ -6,7 +6,7 @@ requires GPOS table support, and Arabic/Indic scripts need GSUB as well.
 PostScript does not support either.
 
 The following is my vision of a hacky way to implement it in u2ps.
-Due to the extent of the changes, this is reserved for u2ps version 2.x.
+Due to extent of the changes, this is reserved for u2ps version 2.x.
 
 
 The problem
@@ -97,3 +97,31 @@ There are downsides, too:
 And as a side note, the proposed structure for u2ps maps exactly to what u2pdf
 would look like. Essentially the structure above describes PDF generator with
 PS output.
+
+
+On PostScript compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+PostScript does allow arbitrary font substitutions, in that the interpreter
+may decide to load some of its built-in Type 1 fonts instead of those embedded
+in the document (if any).
+
+Moreover, DSC documents are assumed to tolerate substitution of (presumably)
+same font from a different source by either print spooler or document manager.
+
+This means relying on any custom field in the font dictionary is not possible,
+since the substituted font may not have it.
+
+PostScript parts from versions 0.9 and 1.0 tolerate font substitutions well,
+typically producing nearly the same output as if the substituted font has
+been in use from the very start. They are compatible with the PostScript font
+model.
+
+Going further however, dropping this kind of compability looks more and more
+desirable. In most cases u2ps should and does embed all fonts it uses into
+the output document; using built-in Times-Roman or Courier is of little benefit
+due to their non-guaranteed (and typically rather small) Unicode coverage.
+
+Relying on the embedded fonts means custom font keys are ok, which in turn
+allows doing much of SFNT handling in the C code. From another point of view,
+it also means switching from traditional PostScript font model towards that
+of a self-contained PDF.
