@@ -61,6 +61,10 @@ defont(Iosevka,
 defont(Unifont,
         "R:UnifontMedium")
 
+defont(ConsolaMono,
+        "R:ConsolaMono",
+        "B:ConsolaMono-Bold")
+
 defont(Sawarabi,
         "C:SawarabiGothic-Medium")
 
