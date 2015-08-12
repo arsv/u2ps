@@ -64,6 +64,10 @@ defont(Unifont,
 defont(Sawarabi,
         "C:SawarabiGothic-Medium")
 
+defont(Kochi,
+        "R:Kochi-Mincho",
+        "C:Kochi-Mincho")
+
 defont(Tlwg,
         "R:TlwgMono",
         "B:TlwgMono-Bold",
