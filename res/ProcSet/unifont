@@ -173,6 +173,10 @@
 	16#0E31 16#0E31 0 ushow.rangew	% Thai combining
 	16#0E34 16#0E3A 0 ushow.rangew	% Thai combining
 	16#0E47 16#0E4E 0 ushow.rangew	% Thai combining
+	16#1D300 16#1D371 2 ushow.rangew
+	16#1F100 16#1F1FF 2 ushow.rangew % Double-width letters
+	16#1F030 16#1F061 2 ushow.rangew % Domino horizontal
+	16#E0000 16#E01FF 2 ushow.rangew
 	pop 1 exit
 } loop } def
 

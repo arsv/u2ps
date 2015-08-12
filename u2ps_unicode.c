@@ -132,6 +132,12 @@ int uniwidth(int codepoint)
 		case 0xFE00 ... 0xFE0F: return 0;
 		// fullwidth currency
 		case 0xFFE0 ... 0xFFE6: return 2;
+
+		case 0x1D300 ... 0x1D371: return 2;
+		case 0x1F100 ... 0x1F1FF: return 2;
+		case 0x1F030 ... 0x1F061: return 2;
+		case 0xE0000 ... 0xE01FF: return 2;
+
 		// Everything else is single-width
 		default: return 1;
 	}
