@@ -37,6 +37,13 @@ distclean: clean
 
 # dependencies
 
+u2ps.o: config.h
 u2ps*.o: u2ps.h
 u2ps_opts.o: u2ps_data.h
 u2ps_data.o: u2ps_data.i
+u2ps_pswr.o: config.h
+
+psfrem.o: config.h
+psfrem*.o: psfrem.h
+
+ttf2pt42.o: config.h
