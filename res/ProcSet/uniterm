@@ -134,6 +134,9 @@ grestore
 	ushow
 } def
 
+% Incomplete or incorrect bytes
+/x { length { /.notdef glyphshow } repeat } def
+
 % end-of-line, finish ul/sl, move onto the next line
 /n {
 	ux null ne dup { ue } if
