@@ -1,50 +1,52 @@
-Version issues: 0.8 vs 0.9.
+Short version history
+~~~~~~~~~~~~~~~~~~~~~
+0.8: initial perl version using fontsets and ttf2pt42-converted fonts
+0.9: improved perl version using fontsets and system fonts
+1.0: completely rewritten tool in C with PS fontsets removed
+
+
+What is fontset
+~~~~~~~~~~~~~~~
+Most of the time large unicode coverage is achieved not with a single
+large font but with a set of fonts covering specific unicode subsets.
+For instance, one font may cover European scripts, pseudographics
+and such while another one provides CJK ideographs.
+
+Versions 0.8 and 0.9 had fontsets implemented in PostScript.
+Starting with version 1.0, PostScript part operates with individual
+fonts and all font switching is done in the C part.
+
+
+Why fontsets are important
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Large-coverage unitary fonts are few and far in between. Most easily
+available fonts have either modest coverage for common Unicode areas,
+or cover some particular areas only (Thai fonts, Japanese fonts and so on).
 
 
 Where are my fonts?
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
 Starting with version 0.9, u2ps uses system fonts.
 That is, fonts gs can find in its path.
-
-There is no need to supply any general-use fonts with u2ps anymore,
-especially given FreeMono is quite common and is very likely to
-be present somewhere in the system.
-
-One exception here are TT fonts lacking "post" table (e.g. Kochi-Mincho).
-These should be converted to .pfa, placed in u2ps/ps/fonts and listed
-in u2ps/ps/Fontmap.
-
-Also, unlike v0.8, there is nothing specific about u2ps/ps/fonts anymore,
-it's just that gs will be called with -Iu2ps/ps option to allow it to find
-fonts there.
-
-Since most common TT fonts have post table and fonts without post table
-tend to cover unusual ranges, the whole thing was removed from u2ps bundle.
-In case you need those ranges, procure the fonts yourself and convert them
-using supplied ttf2pt42.px.
-
-Supplying fonts with u2ps like it was done in 0.8 simplified full-font
-embedding, because supplied fonts were guaranteed to be "clean" pfa text
-files. In 0.9, full-font embedding is done the same way as reduced-font
-embedding, by dumping loaded font from within gs, and notdef.pfa
-is handled as a special case.
 
 
 Where are my fontsets?
 ~~~~~~~~~~~~~~~~~~~~~~
-All available fontsets are now bundled with u2ps (in ps/FontSet directory).
+1.0: data on all available fontsets is compiled into u2ps executable.
+
+0.9: all available fontsets are bundled with u2ps (in ps/FontSet directory).
 No additional packages are needed.
 
 
-Font-embedding utilites from v0.8x
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Font-embedding utilites from v0.8
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 u2ps_pp.px and u2ps_rs.px have been replaced with simplier one-pass psfrem.px.
 This makes it just a bit harder to debug but significantly faster and easier
 to use, including on non-u2ps files.
 
 
-Regarding output file size: v0.8 vs v0.9
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Regarding output file size: v0.8 vs v0.9 vs 1.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 It may look like v0.9 generates significantly larger output files that v0.8
 with FreeMono fontset and font embedding enabled.
 
@@ -52,10 +54,7 @@ This is actually mostly because of the changes in FreeMono font itself.
 v0.8 had an old version bundled with it, and "old" here means something like 2007.
 v0.9 loads system font, which for most systems means current version.
 
-
-u2ps options
-~~~~~~~~~~~~
-Options have been adjusted a bit to match a2ps wherever it made sense.
+v1.0 drops a lot of postscript code, but the fonts are still there.
 
 
 Whole-font embedding

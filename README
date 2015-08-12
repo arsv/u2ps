@@ -5,19 +5,26 @@ with emphasis on Unicode support.
 
 Key features:
 
-* utf8 support implemented in PostScript
+* utf8 support implemented (mostly) in PostScript
 * clean, readable and reasonably small output files
 * font subset embedding for Type 1 and Type 42 (TTF) fonts
 * ANSI control sequences support (color and font variants)
 
-Things missing at present (and possibly ever):
+Things missing at present:
 
 - proper combining mark positioning
 - reordering and ligatures
 - bidi support
 
+The tool should be usable on any reasonably sane system with
+Ghostscript installed.
+
 As long as the input does not stray too far from common ltr scripts
 and usable font(s) are available, u2ps should work well.
+
+Current version is probably the last one using mostly-postscript
+mostly-font-agnostic approach; check TODO for further development
+ideas.
 
 
 Installation
