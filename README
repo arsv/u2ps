@@ -44,6 +44,27 @@ For hacking/debugging, run "./configure devel" instead, the resulting
 executable will work right from the source directory.
 
 
+Sample usage
+~~~~~~~~~~~~
+The files in text/ directory may be used as a showcase for u2ps features.
+Assuming you built u2ps in devel mode, run
+
+    ./u2ps text/ansi.txt
+    ./u2ps text/alph.txt
+    ./u2ps text/utf8.txt
+    ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/alph.txt
+    ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/utf8.txt
+
+The last command assumes you have Kochi-Mincho (http://en.osdn.jp/projects/efont/)
+and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts installed.
+
+Sample usage with individual font setting:
+
+    ./u2ps -2 -f FreeMono -fC:SawarabiGothic-Medium text/alph.txt
+
+This works for fonts not known to u2ps.
+
+
 Documentation
 ~~~~~~~~~~~~~
 See man page and text files in doc/ directory.
