@@ -42,6 +42,11 @@ For hacking/debugging, run "./configure devel" instead, the resulting
 executable will work right from the source directory.
 
 
+Documentation
+~~~~~~~~~~~~~
+See man page and text files in doc/ directory.
+
+
 Sample usage
 ~~~~~~~~~~~~
 The files in text/ directory may be used as a showcase for u2ps features.
@@ -61,11 +66,6 @@ Sample usage with individual font setting:
     ./u2ps -2 -f FreeMono -fC:SawarabiGothic-Medium text/alph.txt
 
 This works for fonts not known to u2ps.
-
-
-Documentation
-~~~~~~~~~~~~~
-See man page and text files in doc/ directory.
 
 
 Github note
