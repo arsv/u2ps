@@ -3,9 +3,9 @@
 #include "u2ps.h"
 #include "ct.h"
 
-/* Basic font-name setting check. Proper fontset names should
-   set all relevant fonts[] entries, and it should be possible
-   to override entries via keyed font specifications. */
+/* Font scaling check.
+   set_font_aspects should be able to find aspect values,
+   and set_font_sizes is expected to bring all fonts to the same width. */
 
 extern void set_font(char* opt);
 extern void set_font_aspects(void);
