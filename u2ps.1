@@ -51,7 +51,7 @@ Still, fontset names are choosen to match base font names closely.
 Primary font set [FreeMono].
 .IP "\fB-f\fIK\fB:\fIname\fR" 4
 Font name for key \fIK\fR; possible key values are: \fBR\fRegular, \fBI\fRtalic,
-\fBB\fRold, \fBO\fR bold italic, \fBC\fRJK characters, \fBT\fRhai.
+\fBB\fRold, b\fBO\fRld italic, \fBC\fRJK characters, \fBT\fRhai.
 .IP "\fB--head-font=\fIname\fR" 4
 Auxilliary font set [Times-Roman]
 .IP "\fB--line-font=\fIname\fR" 4
@@ -122,7 +122,7 @@ loaded by gs.
 
 Ghostscript run is the most complicated and cpu-intensive part of u2ps operation.
 
-Embedding fonts (and other resources) into document is not, in fact, necessary
+Embedding fonts into document is not, in fact, necessary
 if gs knows where to look for them. In such case you can make u2ps run
 much faster by using -E option. Just make sure to pass -I/usr/share/u2ps/ps to gs
 when handling files produced by u2ps -E, or otherwise make u2ps resources available.
@@ -143,16 +143,9 @@ embedding standard fonts as well (\fB-A\fR option).
 '''
 .SS TrueType fonts
 Normally u2ps relies on Ghostscript to load TT fonts. However, Ghostscript can not
-handle TT fonts without "post" table properly. When loaded directly by Ghostscript, 
+handle TrutType fonts without "post" table properly. When loaded directly by Ghostscript,
 such fonts get non-standard (and non-usable) glyph names, which makes them useless
 for u2ps.
-
-There is a workaround: u2ps comes with ttf2pt42 utility, which converts TTF into
-Type42 postscript font with usable glyph names. The resulting .pfa font file must 
-be placed somewhere gs can find it, and listed in relevant Fontmap file.
-
-For u2ps-specific fonts, this should probably be /usr/share/u2ps/ps/fonts and
-/usr/share/u2ps/ps/Fontmap respectively.
 '''
 .SS Font licensing
 When embedding fonts, u2ps assumes you have the rights to do so. No checks are
