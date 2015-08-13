@@ -1,6 +1,6 @@
 #!/bin/sh
 
-unset prefix bindir datadir mandir man1dir basedir gs psfremdir
+unset prefix bindir datadir mandir man1dir basedir gs psfremdir cross
 
 help() {
 cat << EOF
@@ -20,7 +20,7 @@ exit
 }
 
 # Use environment for default values
-cc=${CC:-gcc}
+cc=${CC}
 cflags=${CFLAGS:--O}
 
 for arg; do
@@ -50,10 +50,7 @@ for arg; do
 		cc) cc="$val" ;;
 		cflags) cflags="$val" ;;
 		devel) cflags="-Wall -g"; basedir="res"; psfremdir="./" ;;
-		target)
-			echo "use cc=\${target-compiler} for cross-compilation"
-			exit 1
-			;;
+		target) cross="$val-" ;;
 		*)
 			echo "unexpected parameter $arg"
 			exit 1
@@ -69,16 +66,19 @@ basedir=${basedir:-$datadir/u2ps}
 mandir=${mandir:-$datadir/man}
 man1dir=${man1dir:-$mandir/man1}
 
+cc=${cc:-${cross}gcc}
 gs=${gs:-gs}
 
 # This check won't change anything, but it may be useful
 # to warn the user if the value is clearly bogus.
 
-if echo quit | $gs -sDEVICE=nullpage >/dev/null 2>&1; then
-	echo "GhostScript seems to be working well"
-else
-	echo "WARNING: cannot run $gs"
-	echo "WARNING: resource reduction will not work without gs"
+if [ -z "$cross" ]; then
+	if echo quit | $gs -sDEVICE=nullpage >/dev/null 2>&1; then
+		echo "GhostScript seems to be working well"
+	else
+		echo "WARNING: cannot run $gs"
+		echo "WARNING: resource reduction will not work without gs"
+	fi
 fi
 
 echo "Updating configuration"
@@ -99,6 +99,7 @@ sed -i \
 	config.h
 
 echo
+echo "C compiler: $cc $cflags"
 echo "u2ps executable dir: $bindir"
 echo "u2ps postscript dir: $basedir"
 echo "man section 1 path: $man1dir"
