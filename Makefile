@@ -34,6 +34,7 @@ clean:
 
 distclean: clean
 	rm -f u2ps psfrem ttf2pt42 tags
+	$(MAKE) -C test clean
 
 # dependencies
 
