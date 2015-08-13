@@ -53,7 +53,8 @@ ct_%: ct_%.o
 
 ct_deutf: ct_deutf.o u2ps_unicode.o
 
-ct_takecsi: ct_takecsi.o globals.o u2ps_term.o u2ps_tset.o u2ps_tcsi.o u2ps_pswr.o u2ps_unicode.o
+ct_takecsi: ct_takecsi.o globals.o u2ps_term.o u2ps_page.o u2ps_termcsi.o u2ps_pswr.o \
+	u2ps_unicode.o u2ps_data.o warn.o
 
 ct_strecat: ct_strecat.o psfrem_util.o
 
