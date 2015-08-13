@@ -32,16 +32,15 @@ Wrap long lines
 .IP "\fB-W\fR/\fB--wrap-mark\fR" 4
 Wrap long lines and set wrap marks
 .IP "\fB-i\fR/\fB--inverse\fR" 4
-Inverse (white text on black background) mode. Does not change other
-colors, so red will still be red. Use this to make the page
-look as close to a real terminal as possible. Can be useful for 
-making "terminal screenshots" or rendering ASCII art, but hardly
-suitable for printing.
+Inverse (white text on black background) mode. Does not change other colors,
+so red will still be red. Use this to make the page look as close to
+a real terminal as possible. Can be useful for making "terminal screenshots"
+or rendering ASCII art, but hardly suitable for printing.
 '''
 .SS Fonts setup
-u2ps can switch between regular/bold/italic fonts, and if instructed so, between
-fonts providing different Unicode areas. Fonts are always loaded via Ghostscript,
-and the font names used are PostScript names.
+u2ps can switch between regular/bold/italic fonts, and if instructed so,
+between fonts providing different Unicode areas. Fonts are always loaded
+via Ghostscript, and the font names used are PostScript names.
 
 In addition to that, u2ps keeps a built-in list of common font variants.
 For instance, -f FreeMono sets regular, bold and italic fonts at once.
@@ -74,7 +73,8 @@ Double-width glyphs naturally have double that, so -2 mode should
 be used to get square CJK ideographs in the output.
 '''
 .SS Font size selection
-Use only one of these options. Paper size will be used to determine the other two.
+Use only one of these options.
+Paper size will be used to determine the other two.
 .IP "\fB-s\fR/\fB--font-size=\fIn\fR" 4
 Font size (pt)
 .IP "\fB-C\fR/\fB--columns=\fIn\fR" 4
@@ -104,7 +104,8 @@ Page footers.
 '''
 .SS Postscript options
 .IP "\fB-R\fR/\fB--noreduce\fR" 4
-Do not reduce resources, embed everything as is (see \fB-r\fR in \fBpsfrem\fR(1)).
+Do not reduce resources, embed everything as is
+(see \fB-r\fR in \fBpsfrem\fR(1)).
 .IP "\fB-A\fR/\fB--allfonts\fR" 4
 Embed/reduce all fonts, including standard postscript 35
 .IP "\fB-E\fR/\fB--noembed\fR"
@@ -120,32 +121,33 @@ This is done by passing initial document through gs -sDEVICE=nullpage,
 collecting glyph usage statistics and dumping relevant parts of the fonts
 loaded by gs.
 
-Ghostscript run is the most complicated and cpu-intensive part of u2ps operation.
+Ghostscript run is the most complicated and cpu-intensive part of u2ps
+operation.
 
-Embedding fonts into document is not, in fact, necessary
-if gs knows where to look for them. In such case you can make u2ps run
-much faster by using -E option. Just make sure to pass -I/usr/share/u2ps/ps to gs
-when handling files produced by u2ps -E, or otherwise make u2ps resources available.
+Embedding fonts into document is not, in fact, necessary if gs knows where to
+look for them. In such case you can make u2ps run much faster by using -E
+option. Just make sure to pass -I/usr/share/u2ps/ps to gs when handling files
+produced by u2ps -E, or otherwise make u2ps resources available.
 '''
 .SS PostScript printers
-u2ps relies on non-standard \fBglyphwidth\fR operator to center and right-align headings.
-In case postscript interpreter in your printer lacks this operator, you are likely to get
-misaligned headings.
+u2ps relies on non-standard \fBglyphwidth\fR operator to center and right-align
+headings.  In case postscript interpreter in your printer lacks this operator,
+you are likely to get misaligned headings.
 '''
 .SS Standard PostScript fonts
-Unless told otherwise, u2ps does not embed standard fonts (Times-Roman, Courier and such).
-Most of the time it works well. However, range coverage outside of basic Latin1
-is not guaranteed for standard fonts, and the fonts bundled with Ghostscript tend to have
-more glyphs than fonts in a typically printer.
+Unless told otherwise, u2ps does not embed standard fonts (Times-Roman, Courier
+and such).  Most of the time it works well. However, range coverage outside of
+basic Latin1 is not guaranteed for standard fonts, and the fonts bundled with
+Ghostscript tend to have more glyphs than fonts in a typically printer.
 
-In case you get notdef marks on printouts that weren't there in Ghostscript, consider
-embedding standard fonts as well (\fB-A\fR option).
+In case you get notdef marks on printouts that weren't there in Ghostscript,
+consider embedding standard fonts as well (\fB-A\fR option).
 '''
 .SS TrueType fonts
-Normally u2ps relies on Ghostscript to load TT fonts. However, Ghostscript can not
-handle TrutType fonts without "post" table properly. When loaded directly by Ghostscript,
-such fonts get non-standard (and non-usable) glyph names, which makes them useless
-for u2ps.
+Normally u2ps relies on Ghostscript to load TT fonts. However, Ghostscript can
+not handle TrutType fonts without "post" table properly. When loaded directly
+by Ghostscript, such fonts get non-standard (and non-usable) glyph names, which
+makes them useless for u2ps.
 '''
 .SS Font licensing
 When embedding fonts, u2ps assumes you have the rights to do so. No checks are
@@ -157,7 +159,8 @@ Written by Alex Suykov \fT<alex.suykov@gmail.com>\fR
 Feel free to send bug reports and suggestions.
 '''
 .SH SEE ALSO
-\fBgs(1)\fR, \fBhighlight(1)\fR, \fBpsnup(1)\fR, \fBpsbook(1)\fR, \fBpsselect(1)\fR,
-\fBepstopdf(1)\fR, \fBps2pdf\fR.
+\fBgs(1)\fR, \fBhighlight(1)\fR, \fBpsnup(1)\fR, \fBpsbook(1)\fR,
+\fBpsselect(1)\fR, \fBepstopdf(1)\fR, \fBps2pdf\fR.
 
-Similar utilities: \fBa2ps(1)\fR, \fBpaps(1)\fR, \fBtexttops\fR from cups package.
+Similar utilities: \fBa2ps(1)\fR, \fBpaps(1)\fR, \fBtexttops\fR from cups
+package.
