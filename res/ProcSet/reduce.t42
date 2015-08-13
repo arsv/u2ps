@@ -190,7 +190,7 @@ end
 		16#0020 and 0 eq { exit } if			% data p+O
 		1 index length 1 index 4 add le {
 			(MORE_COMPONENTS set but no more bytes left\n) print
-			(%2!H\n) printf
+			1 index (%H\n) printf
 			exit
 		} if
 	} loop							% data p+O
