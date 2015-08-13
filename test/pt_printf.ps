@@ -1,0 +1,14 @@
+(pt.ps) run
+/printf/ProcSet findresource { def } forall
+
+% This is close to the complete list of printf tokens
+% actually used anywhere in u2ps.
+
+(T-): (Hello, world!) sprintf :: (Hello, world!) TEST
+(Ts): (world) (Hello, %s!) sprintf :: (Hello, world!) TEST
+(Tint): 10 (%i) sprintf :: (10) TEST
+(Thex): 24 (0x%x) sprintf :: (0x18) TEST
+(Tpad): 34 (%05i) sprintf :: (00034) TEST
+(THST): (abc) (%H) sprintf :: (616263) TEST
+(Tnam): /foo (%l) sprintf :: (/foo) TEST
+(THSP): (abc) (%#H) sprintf stack :: (<616263>) TEST
