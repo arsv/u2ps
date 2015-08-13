@@ -1,0 +1,12 @@
+(pt.ps) run
+(../res/ProcSet/uniterm) run
+/uniterm/ProcSet findresource { def } forall
+
+% /x is used to show incorrect input bytes.
+% It only uses its argument length, not the string itself.
+
+/glyphshow { pop } def
+(T1): (xxx) x :: TEST
+
+/glyphshow { count 1 roll } def
+(T2): (xxx) x :: /.notdef /.notdef /.notdef TEST

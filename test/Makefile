@@ -8,7 +8,8 @@ GSFLAGS = -sDEVICE=nullpage -dBATCH -dQUIET -I../res
 
 CTESTS = ct_strecat ct_deutf ct_takecsi ct_u2opts ct_fonts1 ct_fonts2 \
 	ct_font_name_match
-PTESTS = pt_deutf pt_findglyph pt_rangew pt_substcode pt_uniname pt_ushow
+PTESTS = pt_deutf pt_findglyph pt_rangew pt_substcode pt_uniname pt_ushow \
+	pt_term_u pt_term_x
 
 all: ctests
 run: crun prun
