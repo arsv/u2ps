@@ -55,17 +55,6 @@
 % r(s)printf processes format sequences backwards, allowing for a more intuitive
 %	(Hello) (world) (%s %s!) rprintf
 %
-% Arguments can be addressed explicitly, using %N$a or %N!a form.
-% Indexes are in postfix order even for r(s)printf:
-%	... 5 4 3 2 1 (format) printf
-% Printf pops all arguments up to last addressed without !.
-% 	B A (%s %s) printf -
-%	B A (%2$s) printf -
-%	B A (%2!s) printf B A
-%	C B A (%3!s %s) printf B A
-% however, stack state is not changed during format processing:
-%	C B A (%2$a %2$a %2$a) printf
-% will print B three times.
 %%EndComments
 /printf 10 dict begin
 % --[ printf dict ]-------------------------------------------------------------
@@ -183,38 +172,25 @@
 	dup (#) in { /mark true fmt-def /state-perc-flags follow } if
 	dup (-) in { /left true fmt-def /state-perc-flags follow } if
 	dup ( ) in { /spsc true fmt-def /state-perc-flags follow } if
-	dup (!) in { /keep true fmt-def /state-perc-flags follow } if
-	dup is-1digit { num-start /state-num-2 follow } if
+	dup is-1digit { num-start /state-num-1 follow } if
 	dup (.) in { /state-fwidth follow } if
 	state-formatter
 } def
 
 /state-num-1 {
 	dup is-0digit { /state-num-1 follow } if
-	dup ($!) in { 
-		num-end /argi exch fmt-def
-		dup (!) in { /keep true fmt-def } if
-		/state-perc-flags follow
-	} if
-	dup (.) in { num-end /width exch fmt-def /state-fwidth follow } if
-	num-end /width exch fmt-def
-	state-formatter
-} def
-
-/state-num-2 {
-	dup is-0digit { /state-num-2 follow } if
 	dup (.) in { num-end /width exch fmt-def /state-fwidth follow } if
 	num-end /width exch fmt-def
 	state-formatter
 } def
 
 /state-fwidth {
-	dup is-0digit { num-start /state-num-3 follow } if
+	dup is-0digit { num-start /state-num-2 follow } if
 	state-formatter
 } def
 
-/state-num-3 {
-	dup is-0digit { /state-num-3 follow } if
+/state-num-2 {
+	dup is-0digit { /state-num-2 follow } if
 	num-end /fwidth exch fmt-def
 	state-formatter
 } def
