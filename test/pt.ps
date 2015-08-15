@@ -6,10 +6,13 @@
 %             +- code to run, typically a function call
 %
 % The results are compared using deepeq below, which is better
-% than eq but still leaves out a lot. Do not use on dicts.
+% than eq but still leaves out a lot.
 %
 % The expected results are assumed to not contain raw marks,
 % because :: is a mark and TEST uses counttomark.
+%
+% TEST does not show what exactly went wrong.
+% Place "stack" before :: and check the output instead.
 
 /TTAG (--) def
 
