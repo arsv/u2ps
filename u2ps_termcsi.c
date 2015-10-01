@@ -31,8 +31,8 @@ extern struct genopts genopts;
    are negative. */
 
 /* attr.[fb]g */
-#define UNDEFINED	-1
-#define NOTSET		-2
+#define UNDEFINED	-1	/* use page defaults (black on white) */
+#define NOTSET		-2	/* set page defaults */
 /* attr.e[fb]g */
 #define INVISIBLE	-3
 #define HALFBRIGHT	-4
