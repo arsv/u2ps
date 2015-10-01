@@ -58,8 +58,9 @@ Assuming u2ps is built in devel mode, run
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/alph.txt
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/utf8.txt
 
-The last command assumes Kochi-Mincho (http://en.osdn.jp/projects/efont/)
-and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts are available.
+The latter two commands assume Kochi-Mincho (http://en.osdn.jp/projects/efont/)
+and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts are installed
+in the system and Ghostscript knows where to find them.
 
 Sample usage with individual font setting:
 
@@ -71,7 +72,7 @@ This works for fonts not known to u2ps.
 Github note
 ~~~~~~~~~~~
 This is a modernized version of my old project from Berlios,
-now rewritten in C, with a lot of incompatible changes.
+now rewritten in C, with lots of incompatible changes.
 
 Check perl branch for the original code if you need it.
 
