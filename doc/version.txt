@@ -5,14 +5,14 @@ Short version history
 1.0: completely rewritten tool in C with PS fontsets removed
 
 
-What is fontset
-~~~~~~~~~~~~~~~
-Most of the time large unicode coverage is achieved not with a single
-large font but with a set of fonts covering specific unicode subsets.
-For instance, one font may cover European scripts, pseudographics
-and such while another one provides CJK ideographs.
+What is a fontset
+~~~~~~~~~~~~~~~~~
+Large unicode coverage is rarely achieved with a single large font.
+Typically there is a bunch of fonts each covering some small specific
+subset of unicode. For instance, one font may cover European scripts,
+pseudographics and such while another one provides CJK ideographs.
 
-Versions 0.8 and 0.9 had fontsets implemented in PostScript.
+Versions 0.8 and 0.9 had fontsets implemented completely in PostScript.
 Starting with version 1.0, PostScript part operates with individual
 fonts and all font switching is done in the C part.
 
@@ -24,15 +24,17 @@ available fonts have either modest coverage for common Unicode areas,
 or cover some particular areas only (Thai fonts, Japanese fonts and so on).
 
 
-Where are my fonts?
-~~~~~~~~~~~~~~~~~~~
+Where are the fonts?
+~~~~~~~~~~~~~~~~~~~~
 Starting with version 0.9, u2ps uses system fonts.
 That is, fonts gs can find in its path.
 
+Version 0.8 needed additional font packages, that's not the case anymore.
 
-Where are my fontsets?
-~~~~~~~~~~~~~~~~~~~~~~
-1.0: data on all available fontsets is compiled into u2ps executable.
+
+Where are the fontsets?
+~~~~~~~~~~~~~~~~~~~~~~~
+1.0: the data on all available fontsets is compiled into u2ps executable.
 
 0.9: all available fontsets are bundled with u2ps (in ps/FontSet directory).
 No additional packages are needed.
@@ -61,7 +63,7 @@ Whole-font embedding
 ~~~~~~~~~~~~~~~~~~~~
 Unlike v0.8 where it was a safe fallback skipping the whole font-handling part,
 embedding whole fonts now requires about as much work as reducing them.
-And that part is not implemented yet.
+And for this reason it's not implemented.
 
 The reason to keep this option at all is embedding u2ps output in some other
 PS document which uses the same fonts. Pretty rare case by itself, and with
