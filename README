@@ -50,7 +50,7 @@ See man page and text files in doc/ directory.
 Sample usage
 ~~~~~~~~~~~~
 The files in text/ directory may be used as a showcase for u2ps features.
-Assuming u2ps is built in devel mode, run
+Assuming u2ps is built in devel mode (./configure devel), run
 
     ./u2ps text/ansi.txt
     ./u2ps text/alph.txt
@@ -58,7 +58,7 @@ Assuming u2ps is built in devel mode, run
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/alph.txt
     ./u2ps -2 -f FreeMono -f Kochi -f Tlwg text/utf8.txt
 
-The latter two commands assume Kochi-Mincho (http://en.osdn.jp/projects/efont/)
+The last two commands assume Kochi-Mincho (http://en.osdn.jp/projects/efont/)
 and Tlwg (http://linux.thai.net/projects/fonts-tlwg) fonts are installed
 in the system and Ghostscript knows where to find them.
 

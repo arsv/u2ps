@@ -101,12 +101,13 @@ PS output.
 
 On PostScript compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-PostScript does allow arbitrary font substitutions, in that the interpreter
+PostScript does allow arbitrary font substitutions, that is, the interpreter
 may decide to load some of its built-in Type 1 fonts instead of those embedded
-in the document (if any).
+in the document.
 
-Moreover, DSC documents are assumed to tolerate substitution of (presumably)
-same font from a different source by either print spooler or document manager.
+Moreover, DSC documents are assumed to tolerate substitution of the same
+font (specifically a font with the same PS name) from a different source
+by either print spooler or document manager.
 
 This means relying on any custom field in the font dictionary is not possible,
 since the substituted font may not have it.
