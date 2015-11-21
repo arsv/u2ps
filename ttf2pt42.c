@@ -5,9 +5,9 @@
 #include "warn.h"
 
 /* This should have been a shell script, but argument handling happens
-   to be quite unwieldy for a shell script. What this does is running
+   to be quite unwieldy even for bash. What this does is running
 
-	gs -dBATCH -sDEVICE+nullpage -dQUIET -dNOPAUSE \
+	gs -dBATCH -sDEVICE=nullpage -dQUIET -dNOPAUSE \
 		-I$BASE/ps -- $BASE/t2pt42.ps $1 ${1/.ttf/.pfa}
 
    with some argument checking thrown in.
