@@ -217,7 +217,7 @@ void include_cat_res(char* category, char* resource, char* fromfile, int fromlin
 	char** d;
 
 	if(!libpath.list)
-		return NULL;
+		return;
 
 	for(d = libpath.list; *d; d++) {
 		if(isfont)
