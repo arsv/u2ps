@@ -4,16 +4,16 @@
 #include "config.h"
 #include "warn.h"
 
-/* The PostScript writer.
+/* PostScript writer.
 
-   The term part wants to output (utf-8) characters one by one,
-   and non-string commands as well, without the need to care about
-   ( and )u placement.
+   The term code outputs utf-8 characters one by one, intermixed with
+   commands. To output valid postscript, the characters should be grouped
+   with "(" and ")u", and the commands must be properly spaced.
 
-   The commands themselves should be spaced, possibly wrapping
-   the (output) lines to keep them reasonably short.
-   A lot of ansi formatting can result in very very long ps output
-   even for a single input line. */
+   Output lines are wrapped when they become too long.
+   This is independent from logical lines in the text. A lot of ansi
+   formatting can result in very very long ps output even for a single
+   logic text line. */
 
 extern FILE* output;
 
@@ -90,8 +90,9 @@ void pscmd(const char* fmt, ...)
 	if(nl) psnl(0);
 }
 
-/* Valid utf-8 is written as is, but invalid input gets converted into ????
-   by u2ps code to space the ps part from dealing with garbage. */
+/* Valid utf-8 is written as is, but invalid input gets converted
+   into ???? so that the ps part would not have to deal with
+   encoding errors. */
 
 void psbad(int len)
 {
@@ -108,7 +109,8 @@ void psuni(char* ptr, int len)
 	pswrite(ptr, len);
 }
 
-/* This is only used for stuff like title, not for the text. */
+/* This is only used for stuff like headings and line numbers,
+   not for the text. */
 
 void psstr(const char* str)
 {
