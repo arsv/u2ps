@@ -2,13 +2,12 @@
 #include "u2ps.h"
 #include "warn.h"
 
-/* PostScript prologue does not depends on the terminal state
-   at all, only on the command line options, so it is kept
-   here and out of _term* files.
+/* PostScript prologue does not depend on the terminal state,
+   only on the command line options, so it is kept here and out
+   of _term* files.
 
-   The functions are still called from _term.c, because there
-   is some terminal setup to do before starting and finishing
-   the output file. */
+   The functions are still called from _term.c, since some terminal
+   setup must be done before starting and finishing the output file. */
 
 static void put_ps_prolog(void);
 static void put_ps_setup(void);

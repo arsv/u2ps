@@ -7,13 +7,11 @@
 /* PostScript writer.
 
    The term code outputs utf-8 characters one by one, intermixed with
-   commands. To output valid postscript, the characters should be grouped
+   commands. To get valid postscript, the characters must be grouped
    with "(" and ")u", and the commands must be properly spaced.
 
-   Output lines are wrapped when they become too long.
-   This is independent from logical lines in the text. A lot of ansi
-   formatting can result in very very long ps output even for a single
-   logic text line. */
+   Output lines are wrapped if they become too long.
+   This is independent from logical lines in the text. */
 
 extern FILE* output;
 
@@ -44,11 +42,11 @@ void psmode(enum psmode newstate)
 	};
 
 	/* possible pairs here:
-	   	NOTHING -> COMMAND
-		NOTHING -> *STRING
-		COMMAND -> *STRING
-		COMMAND -> NOTHING
-		COMMAND -> COMMAND */
+	      NOTHING -> COMMAND
+	      NOTHING -> *STRING
+	      COMMAND -> *STRING
+	      COMMAND -> NOTHING
+	      COMMAND -> COMMAND */
 
 	if(state && newstate)
 		psputs(" ");

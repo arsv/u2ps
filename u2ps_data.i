@@ -4,7 +4,7 @@
    Sadly C does not allow to initialize a structure like that statically,
    even though it is totally possible. So instead, we use doubly-included
    file (this one specifically) to build it.
- 
+
    Do NOT attempt to compile this file! Compile u2ps_data.c instead. */
 
 defont(Courier,
@@ -13,7 +13,7 @@ defont(Courier,
         "I:Courier-Oblique",
         "O:Courier-BoldOblique" )
 
-defont(FreeMono, 
+defont(FreeMono,
         "R:FreeMono",
         "B:FreeMonoBold",
         "I:FreeMonoOblique",

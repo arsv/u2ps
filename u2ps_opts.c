@@ -26,9 +26,9 @@ struct genopts genopts = {
 struct runopts runopts;
 
 struct pagelayout pagelayout = {
-	.pw = 595, .ph = 842,		/* A4 */
-	.mt = 55, .ml = 57.5,		/* some reasonable margins */
-	.mb = 55, .mr = 57.5
+	.pw = 595, .ph = 842,       /* A4 */
+	.mt = 55,  .ml = 57.5,      /* some reasonable margins */
+	.mb = 55,  .mr = 57.5
 };
 
 int auxsize;
@@ -97,11 +97,11 @@ void die_print_usage(void)
 	exit(0);
 }
 
-#define BOOL 0
-#define INT  1
-#define STRING 2
-#define FUNC 3
-#define PASS 4
+#define BOOL    0
+#define INT     1
+#define STRING  2
+#define FUNC    3
+#define PASS    4
 
 static void set_paper(char* opt);
 static void set_margins(char* opt);
@@ -116,38 +116,38 @@ struct option {
 	short type;
 	void* addr;
 } optlist[] = {
-	{ 'T', "tab",		INT,	&genopts.tabstop },
-	{ 'a', "noansi",	BOOL,	&genopts.skipansi },
-	{ '1', "wide",		BOOL,	&widechar },
-	{ '2', "half",		BOOL,	&halfchar },
-	{ 'P', "paper",		FUNC,	set_paper },
-	{ 'M', "margins",	FUNC,	set_margins },
-	{ 'r', "landscape",	BOOL,	&genopts.landscape },
-	{ 'C', "columns",	INT,	&genopts.cols },
-	{ 'L', "lines",		INT,	&genopts.rows },
-	{ 's', "size",		INT,	set_size },
-	{ 'f', "font",		FUNC,	set_font },
-	{ 'o', "stdout",	BOOL,	&runopts.stdout },
-	{ 'w', "wrap",		BOOL,	&genopts.wrap },
-	{ 'm', "mark",		BOOL,	&genopts.mark },
-	{ 'i', "inverse", 	BOOL,	&genopts.inverse },
-	{ 'l', "numbers",	BOOL,	&genopts.linenum },
-	{ '-', "startline",	INT,	&genopts.startline },
-	{ 'b', "bookish",	BOOL,	&genopts.bookish },
-	{ 't', "title", 	STRING,	&genopts.title },
-	{ 'H', "noheadings", 	FUNC,	set_empty_headings },
-	{ 'R', "noreduce",	BOOL,	&runopts.noreduce },
-	{ 'A', "allfonts",	BOOL,	&runopts.allfonts },
-	{ 'E', "noembed",	BOOL,	&runopts.skipfrem },
-	{ 'k', "keep",		BOOL,	&runopts.keeptemp },
-	{ 'd', NULL, 		PASS,	add_passopt },
-	{ 'I', NULL,		PASS,	add_passopt },
-	{ 'v', "verbose",	BOOL,	&verbose },
-	{  0 }
+	{ 'T', "tab",           INT,    &genopts.tabstop    },
+	{ 'a', "noansi",        BOOL,   &genopts.skipansi   },
+	{ '1', "wide",          BOOL,   &widechar           },
+	{ '2', "half",          BOOL,   &halfchar           },
+	{ 'P', "paper",         FUNC,   set_paper           },
+	{ 'M', "margins",       FUNC,   set_margins         },
+	{ 'r', "landscape",     BOOL,   &genopts.landscape  },
+	{ 'C', "columns",       INT,    &genopts.cols       },
+	{ 'L', "lines",         INT,    &genopts.rows       },
+	{ 's', "size",          INT,    set_size            },
+	{ 'f', "font",          FUNC,   set_font            },
+	{ 'o', "stdout",        BOOL,   &runopts.stdout     },
+	{ 'w', "wrap",          BOOL,   &genopts.wrap       },
+	{ 'm', "mark",          BOOL,   &genopts.mark       },
+	{ 'i', "inverse",       BOOL,   &genopts.inverse    },
+	{ 'l', "numbers",       BOOL,   &genopts.linenum    },
+	{ '-', "startline",     INT,    &genopts.startline  },
+	{ 'b', "bookish",       BOOL,   &genopts.bookish    },
+	{ 't', "title",         STRING, &genopts.title      },
+	{ 'H', "noheadings",    FUNC,   set_empty_headings  },
+	{ 'R', "noreduce",      BOOL,   &runopts.noreduce   },
+	{ 'A', "allfonts",      BOOL,   &runopts.allfonts   },
+	{ 'E', "noembed",       BOOL,   &runopts.skipfrem   },
+	{ 'k', "keep",          BOOL,   &runopts.keeptemp   },
+	{ 'd', NULL,            PASS,   add_passopt         },
+	{ 'I', NULL,            PASS,   add_passopt         },
+	{ 'v', "verbose",       BOOL,   &verbose            },
+	{  0  }
 };
 
 #define GOT_THIS_OPT_ONLY 0
-#define GOT_NEXT_ARG_TOO 1
+#define GOT_NEXT_ARG_TOO  1
 
 static void handle_opt(struct option* opt, char* arg);
 
@@ -270,7 +270,7 @@ void set_margins(char* opt)
 	pagelayout.mt = l1 ? atoi(l1) : 0;
 	pagelayout.mr = l2 ? atoi(l2) : pagelayout.mt;
 	pagelayout.mb = l3 ? atoi(l3) : pagelayout.mt;
-	pagelayout.ml = l4 ? atoi(l4) : pagelayout.mr; 
+	pagelayout.ml = l4 ? atoi(l4) : pagelayout.mr;
 }
 
 void set_empty_headings(void)
@@ -298,9 +298,9 @@ void set_size(char* opt)
 
 /* Fonts are specified as either fontsets or explicit keyed fonts:
 
-	-f FreeMono             sets regular, bold, italic and bolditalic
-	                        using fontvariant[] table
-	-fI:Courier-Oblique     sets italic (I) font only
+         f FreeMono             sets regular, bold, italic and bolditalic
+                                using fontvariant[] table
+         fI:Courier-Oblique     sets italic (I) font only
 
    When setting several fontsets, only the entries not set by that time
    are filled. */

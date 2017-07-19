@@ -5,13 +5,13 @@ static struct utfmask {
 	unsigned char test;
 	unsigned char take;
 } utfmask[] = {
-	{ 0x80 /* 1000 0000 */, 0x00 /* 0000 0000 */, 0x7F /* 0111 1111 */ },	/* immediate */
-	{ 0xC0 /* 1100 0000 */, 0x80 /* 1000 0000 */, 0x3F /* 0011 1111 */ },	/* continuation */
-	{ 0xE0 /* 1110 0000 */, 0xC0 /* 1100 0000 */, 0x1F /* 0001 1111 */ },	/* start 1-cont */
-	{ 0xF0 /* 1111 0000 */, 0xE0 /* 1110 0000 */, 0x0F /* 0000 1111 */ },	/* start 2-cont */
-	{ 0xF8 /* 1111 1000 */, 0xF0 /* 1111 0000 */, 0x07 /* 0000 0111 */ },	/* start 3-cont */
-	{ 0xFC /* 1111 1100 */, 0xF8 /* 1111 1000 */, 0x03 /* 0000 0011 */ },	/* start 4-cont */
-	{ 0xFE /* 1111 1110 */, 0xFC /* 1111 1100 */, 0x01 /* 0000 0001 */ },	/* start 5-cont */
+	{ 0x80 /* 1000 0000 */, 0x00 /* 0000 0000 */, 0x7F /* 0111 1111 */ },
+	{ 0xC0 /* 1100 0000 */, 0x80 /* 1000 0000 */, 0x3F /* 0011 1111 */ },
+	{ 0xE0 /* 1110 0000 */, 0xC0 /* 1100 0000 */, 0x1F /* 0001 1111 */ },
+	{ 0xF0 /* 1111 0000 */, 0xE0 /* 1110 0000 */, 0x0F /* 0000 1111 */ },
+	{ 0xF8 /* 1111 1000 */, 0xF0 /* 1111 0000 */, 0x07 /* 0000 0111 */ },
+	{ 0xFC /* 1111 1100 */, 0xF8 /* 1111 1000 */, 0x03 /* 0000 0011 */ },
+	{ 0xFE /* 1111 1110 */, 0xFC /* 1111 1100 */, 0x01 /* 0000 0001 */ },
 	{ 0x00, 0x00, 0x00 }
 };
 
@@ -51,16 +51,16 @@ int deutf(unsigned char* s, int* codepoint)
 	return (cnt < seq) ? invalid(cnt) : valid(cnt);
 }
 
-/* Assumed glyph width in monospace terminal font.
-   That's 1 for all regular characters, 2 for double-width characters
-   and 0 for combining characters and control code.
+/* Assumed glyph width in monospace terminal font. That's 1 for all regular
+   characters, 2 for double-width characters and 0 for combining characters
+   and control code.
 
-   The return of this function should match usubstitute from
-   the ps code. Even better, it should match the actual font used,
-   but that is not available within u2ps.
+   The return of this function should match usubstitute from the ps code.
+   Even better, it should match the actual font used, but that kind of data
+   is not available within u2ps.
 
-   Either way, a mistake here will only affect line wrapping,
-   causing early or late wraps, and that's it. */
+   Either way, a mistake here will only affect line wrapping, causing early
+   or late wraps, and that's it. */
 
 int uniwidth(int codepoint)
 {
@@ -75,7 +75,7 @@ int uniwidth(int codepoint)
 		case 0x0374 ... 0x03F3: return 1;
 		// Cyrillic
 		case 0x0400 ... 0x0482: return 1;
-		case 0x0483 ... 0x0489:	return 0;	// cyrillic combining marks
+		case 0x0483 ... 0x0489:	return 0;  // cyrillic combining marks
 		case 0x048C ... 0x04F9: return 1;
 		// Armenian
 		case 0x0500 ... 0x058A: return 1;

@@ -7,23 +7,22 @@
    The only kind of control sequences u2ps supports at present
    is CSI m which sets text attributes.
 
-   The code is a bit hairy, it does a lot to avoid unnecessary
-   PS commands in the output and it has to track the state across
-   page and line boundaries which is pointless from terminal
-   standpoint but necessary within PS. */
+   The code is a bit hairy, it does a lot to avoid unnecessary PS commands
+   in the output and it has to track the state across page and line boundaries
+   which is pointless from terminal standpoint but necessary within PS. */
 
 extern struct genopts genopts;
 
 /* attr.flags */
-#define BF (1<<0)	/* boldface */
-#define HB (1<<1)	/* halfbright */
-#define IT (1<<2)	/* italic */
-#define UL (1<<3)	/* underlined */
-#define BL (1<<4)	/* blinking */
-#define RB (1<<5)	/* rapidly blinking */
-#define RV (1<<6)	/* reversed */
-#define IV (1<<7)	/* invisible */
-#define SL (1<<8)	/* striked-out */
+#define BF (1<<0)     /* boldface */
+#define HB (1<<1)     /* halfbright */
+#define IT (1<<2)     /* italic */
+#define UL (1<<3)     /* underlined */
+#define BL (1<<4)     /* blinking */
+#define RB (1<<5)     /* rapidly blinking */
+#define RV (1<<6)     /* reversed */
+#define IV (1<<7)     /* invisible */
+#define SL (1<<8)     /* striked-out */
 
 /* Positive color values are in fact colors
    (in a weird indexed palette) but there are also ps
@@ -31,19 +30,19 @@ extern struct genopts genopts;
    are negative. */
 
 /* attr.[fb]g */
-#define UNDEFINED	-1	/* use page defaults (black on white) */
-#define NOTSET		-2	/* set page defaults */
+#define UNDEFINED  -1   /* use page defaults (black on white) */
+#define NOTSET     -2   /* set page defaults */
 /* attr.e[fb]g */
-#define INVISIBLE	-3
-#define HALFBRIGHT	-4
-#define REVERSED	-5
+#define INVISIBLE  -3
+#define HALFBRIGHT -4
+#define REVERSED   -5
 
 static struct attr {
 	int flags;
-	int fg, efg;	/* foreground, effective foreground */
-	int bg, ebg;	/* background, effective background */
-	enum fontstyle efs;	/* effective font style */
-	enum fontstyle cfs;	/* current codepoint-related font style */
+	int fg, efg;            /* foreground, effective foreground */
+	int bg, ebg;            /* background, effective background */
+	enum fontstyle efs;     /* effective font style */
+	enum fontstyle cfs;     /* current codepoint-related font style */
 } curr, next;
 
 static void ansi_set(int key);

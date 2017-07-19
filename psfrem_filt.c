@@ -90,10 +90,10 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 	}
 }
 
-/* There are three very similar file-filtering loop here, one in filter_embed,
+/* There are three very similar file-filtering loops here, one in filter_embed,
    one here and yet another one in include_resfile. They do almost the same
-   thing, with slight variations over which DSC directives are handled,
-   and factoring out the common part only complicates the code. */
+   thing, with only slight variations over which DSC directives are handled,
+   but factoring out the common part would only complicate the code. */
 
 void include_stats(char* statsname)
 {
@@ -191,20 +191,22 @@ void include_resource(char* restag, char* fromfile, int fromline)
 	include_cat_res(category, resource, fromfile, fromline);
 }
 
-/* Now we need to include something like "procset Foo", but the thing is,
-   DSC standard (or GS implementation?) makes it kinda difficult,
-   because its file name is going to be ProcSet/Foo. To do that, we scan
-   libpath directories and pick any that matches the category case-insensitively.
+/* We need to include something like "procset Foo", but the DSC standard
+   (or its GS implementation?) makes it somewhat difficult than it should be
+   because its file name is going to be ProcSet/Foo; note procset vs ProcSet.
+   To resolve this, we scan libpath directories and pick any that matches
+   the category case-insensitively.
 
-   The situation is even worse with fonts, because the file containing "font Some-Name"
-   may in fact be named fonts/sn1020.pfb and may not be embeddable in that form.
-   Reduce solves that problem by dumping font data from a running gs instance,
-   but only for the fonts it was allowed to process.
+   The situation is even worse with fonts, because the file containing
+   "font Some-Name" may in fact be named fonts/sn1020.pfb and may not be
+   embeddable in that form. Font-reducing code solves this problem by dumping
+   font data directly from a running gs instance, but not all fonts get passed
+   through that.
 
-   For now, we assume that any font F psfrem is allowed to embed as a resource
-   is contained in fonts/F.pfa, and it is ok to drop anything else.
-   This is enough not handle notdef, the only font u2ps needs that should not
-   be reduced. */
+   So for now, we assume that any font F psfrem is allowed to embed as
+   a resource is contained in a file named fonts/F.pfa, and it is ok to drop
+   any fonts that have no corresponding file. This is enough not handle notdef,
+   the only font u2ps needs that should not be reduced. */
 
 FILE* try_font(const char* dir, const char* fontname);
 FILE* try_other(const char* dir, const char* category, const char* resource);
@@ -229,8 +231,10 @@ void include_cat_res(char* category, char* resource, char* fromfile, int fromlin
 	}
 
 	if(!resfile) {
-		warn("%s:%i: resource %s %s not found\n", fromfile, fromline, category, resource);
-		fprintf(output, "%%%%DocumentNeedsResources: %s %s\n", category, resource);
+		warn("%s:%i: resource %s %s not found\n",
+		             fromfile, fromline, category, resource);
+		fprintf(output, "%%%%DocumentNeedsResources: %s %s\n",
+		             category, resource);
 	} else {
 		include_resfile(category, resource, resfile);
 		fclose(resfile);
