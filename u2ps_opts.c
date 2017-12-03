@@ -60,6 +60,7 @@ void handle_args(int argc, char** argv)
 		die_print_usage();
 
 	passopts = malloc(argc*sizeof(char*));
+	memset(passopts, 0, argc*sizeof(char*));
 
 	while(i < argc) {
 		if(argv[i][0] != '-')
@@ -161,7 +162,9 @@ int handle_longopt(int argc, char** argv, int i)
 		*(arg++) = '\0';
 
 	for(opt = optlist; opt->shortopt; opt++)
-		if(!strcmp(opt->longopt, argv[i] + 2))
+		if(!opt->longopt)
+			continue;
+		else if(!strcmp(opt->longopt, argv[i] + 2))
 			break;
 	if(!opt->shortopt)
 		die("Unknown option %s\n", argv[i]);

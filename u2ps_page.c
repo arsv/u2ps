@@ -121,6 +121,7 @@ void findallfonts(void)
 				case ITALIC:
 				case BOLDITALIC:
 					psline("/f%c /fR load def\n", key);
+					/* fallthrough */
 				default:
 					continue;
 			}

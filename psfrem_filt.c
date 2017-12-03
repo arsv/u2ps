@@ -254,7 +254,7 @@ FILE* try_other(const char* dir, const char* category, const char* resource)
 	FILE* res = NULL;
 	DIR* dh;
 	struct dirent* de;
-	int catlen = strlen(category);
+	unsigned catlen = strlen(category);
 	char* path = strecat(dir, "/", category, "/", resource, NULL);
 	char* catptr = path + strlen(dir) + 1;
 

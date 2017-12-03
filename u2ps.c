@@ -207,5 +207,7 @@ int run_psfrem(void)
 	if(!runopts.keeptemp)
 		unlink(tmpoutname);
 
+	free(psfrem);
+
 	return 0;
 }

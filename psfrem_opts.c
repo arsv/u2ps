@@ -45,7 +45,7 @@ void handle_options(int argc, char** argv)
 
 			case 'x': dapush(&excludefonts, val); break;
 			case 'a': dapush(&includefonts, val); break;
-			case 'I': dapush(&libpath, arg + 2);
+			case 'I': dapush(&libpath, arg + 2); /* fallthrough */
 			case 'd': dapush(&passopt, arg); break;
 
 			case 'k': keeptemp = 1; break;

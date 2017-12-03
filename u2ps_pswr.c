@@ -95,8 +95,9 @@ void pscmd(const char* fmt, ...)
 void psbad(int len)
 {
 	static char badstring[] = "??????";
+	int max = sizeof(badstring);
 	psmode(BADSTRING);
-	pswrite(badstring, len < sizeof(badstring) ? len : sizeof(badstring));
+	pswrite(badstring, len < max ? len : max);
 }
 
 void psuni(char* ptr, int len)
