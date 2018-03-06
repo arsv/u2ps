@@ -218,16 +218,25 @@ void end_page(void)
 
 void put_header(const char* cmd, const char* string)
 {
-	if(string == PAGENO) {
-		pscmd("(%i)%s", page, cmd); 
-		return;
-	};
+	char* pg;
 
-	if(string == FILENAME)
-		string = inputname;
 	if(!string)
 		return;
+	if(!strcmp(string, "@")) {
+		if(!inputname) return;
+		psstr(inputname);
+		pscmd(cmd);
+	} else if(!(pg = strrchr(string, '#'))) {
+		psstr(string);
+		pscmd(cmd);
+	} else {
+		int pre = pg - string;
+		int len = strlen(string) + 40;
+		char buf[len];
 
-	psstr(string);
-	pscmd(cmd);
+		snprintf(buf, len, "%.*s%i%s", pre, string, page, pg + 1);
+
+		psstr(buf);
+		pscmd(cmd);
+	}
 }

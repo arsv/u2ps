@@ -7,9 +7,6 @@
 #define NO		0
 #define YES		1
 
-#define FILENAME ((void*) 1)
-#define PAGENO   ((void*) 2)
-
 typedef unsigned char bool;
 
 /* All options are located and initialized in u2ps_opts.c */

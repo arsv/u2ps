@@ -38,10 +38,7 @@ int fontsize;
 int fontaspect;
 struct font fonts[nFONTS];
 
-struct headings headings = {
-	.hl = FILENAME,
-	.hr = PAGENO
-};
+struct headings headings;
 
 static bool halfchar = NO;
 static bool widechar = NO;
@@ -61,6 +58,7 @@ void handle_args(int argc, char** argv)
 
 	passopts = malloc(argc*sizeof(char*));
 	memset(passopts, 0, argc*sizeof(char*));
+	memset(&headings, 0, sizeof(headings));
 
 	while(i < argc) {
 		if(argv[i][0] != '-')
@@ -137,6 +135,12 @@ struct option {
 	{ 'b', "bookish",       BOOL,   &genopts.bookish    },
 	{ 't', "title",         STRING, &genopts.title      },
 	{ 'H', "noheadings",    FUNC,   set_empty_headings  },
+	{ '-', "header-left",   STRING, &headings.hl        },
+	{ '-', "header",        STRING, &headings.hc        },
+	{ '-', "header-right",  STRING, &headings.hr        },
+	{ '-', "footer-left",   STRING, &headings.fl        },
+	{ '-', "footer",        STRING, &headings.fc        },
+	{ '-', "footer-right",  STRING, &headings.fr        },
 	{ 'R', "noreduce",      BOOL,   &runopts.noreduce   },
 	{ 'A', "allfonts",      BOOL,   &runopts.allfonts   },
 	{ 'E', "noembed",       BOOL,   &runopts.skipfrem   },
@@ -278,7 +282,7 @@ void set_margins(char* opt)
 
 void set_empty_headings(void)
 {
-	memset(&headings, 0, sizeof(headings));
+	headings.any = YES;
 }
 
 void add_passopt(char* opt)
@@ -386,6 +390,16 @@ static void set_font_aspects(void);
 static void set_font_sizes(void);
 static void set_termfontsize(int tbw, int tbh);
 
+static int got_headings_set(void)
+{
+	int size = sizeof(headings);
+	char zero[size];
+
+	memset(zero, 0, size);
+
+	return memcmp(&headings, zero, size);
+}
+
 void set_derivative_parameters()
 {
 	int tbw = pagelayout.pw - pagelayout.ml - pagelayout.mr;
@@ -410,9 +424,10 @@ void set_derivative_parameters()
 
 	set_font_sizes();
 
-	if(headings.hl || headings.hc || headings.hr
-	|| headings.fl || headings.fc || headings.fr)
-		headings.any = YES;
+	if(!got_headings_set()) {
+		headings.hr = "#";
+		headings.hl = "@";
+	}
 
 	if(genopts.mark)
 		genopts.wrap = YES;
