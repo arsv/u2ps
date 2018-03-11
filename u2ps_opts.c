@@ -31,10 +31,10 @@ struct pagelayout pagelayout = {
 	.mb = 55,  .mr = 57.5
 };
 
-int auxsize;
+int auxsize; /* centipoints */
 const char* auxfont = "Times-Roman";
 
-int fontsize;
+int fontsize; /* centipoints */
 int fontaspect;
 struct font fonts[nFONTS];
 
@@ -101,13 +101,13 @@ void die_print_usage(void)
 #define STRING  2
 #define FUNC    3
 #define PASS    4
+#define FSIZE   5
 
 static void set_paper(char* opt);
 static void set_margins(char* opt);
 static void set_empty_headings(void);
 static void add_passopt(char* opt);
 static void set_font(char* opt);
-static void set_size(char* opt);
 
 struct option {
 	short shortopt;
@@ -124,8 +124,11 @@ struct option {
 	{ 'r', "landscape",     BOOL,   &genopts.landscape  },
 	{ 'C', "columns",       INT,    &genopts.cols       },
 	{ 'L', "lines",         INT,    &genopts.rows       },
-	{ 's', "size",          INT,    set_size            },
+	{ 's', "size",          FSIZE,  &fontsize           },
+	{ '-', "font-size",     FSIZE,  &fontsize           },
 	{ 'f', "font",          FUNC,   set_font            },
+	{ '-', "aux-font",      STRING, &auxfont            },
+	{ '-', "aux-size",      FSIZE,  &auxsize            },
 	{ 'o', "stdout",        BOOL,   &runopts.stdout     },
 	{ 'w', "wrap",          BOOL,   &genopts.wrap       },
 	{ 'm', "mark",          BOOL,   &genopts.mark       },
@@ -239,6 +242,9 @@ void handle_opt(struct option* opt, char* arg)
 		case FUNC:
 			((void (*)(char*)) opt->addr)(arg);
 			break;
+		case FSIZE:
+			*((int*) opt->addr) = 100*atoi(arg);
+			break;
 	}
 }
 
@@ -291,16 +297,6 @@ void add_passopt(char* opt)
 	   pushed there, so there is no need for bound checks here. */
 	passopts[passnum++] = opt;
 	passopts[passnum] = NULL;
-}
-
-void set_size(char* opt)
-{
-	int sz = atoi(opt);
-
-	if(sz > 100)
-		fontsize = sz;
-	else
-		fontsize = 100*sz;
 }
 
 /* Fonts are specified as either fontsets or explicit keyed fonts:
@@ -440,7 +436,7 @@ void set_derivative_parameters()
 
 void set_termfontsize(int tw, int th)
 {
-	int fs = 100*fontsize;
+	int fs = fontsize;
 	int fa = fontaspect;
 
 	int cols = genopts.cols;
