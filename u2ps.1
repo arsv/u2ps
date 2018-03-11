@@ -29,7 +29,7 @@ wrap marks will be printed outside of specified region.
 Rotate to landscape orientation
 .IP "\fB-w\fR/\fB--wrap\fR" 4
 Wrap long lines
-.IP "\fB-W\fR/\fB--wrap-mark\fR" 4
+.IP "\fB-W\fR/\fB--mark\fR" 4
 Wrap long lines and set wrap marks
 .IP "\fB-i\fR/\fB--inverse\fR" 4
 Inverse (white text on black background) mode. Does not change other colors,
@@ -51,14 +51,10 @@ Primary font set [FreeMono].
 .IP "\fB-f\fIK\fB:\fIname\fR" 4
 Font name for key \fIK\fR; possible key values are: \fBR\fRegular, \fBI\fRtalic,
 \fBB\fRold, b\fBO\fRld italic, \fBC\fRJK characters, \fBT\fRhai.
-.IP "\fB--head-font=\fIname\fR" 4
-Auxilliary font set [Times-Roman]
-.IP "\fB--line-font=\fIname\fR" 4
-Font to use for line numbers [Times-Roman]
-.IP "\fB--head-font-size=\fIn\fR" 4
-Headings font size (pt)
-.IP "\fB--line-font-size=\fIn\fB" 4
-Line numbers font size (pt)
+.IP "\fB--aux-font=\fIname\fR" 4
+Auxilliary font, for headings and line numbers [Times-Roman].
+.IP "\fB--aux-size=\fIn\fR" 4
+Auxilliary font size (pt).
 '''
 .SS Aspect ratio adjustments
 Most monospace fonts have aspect ratio of 0.6, which means printing M in
