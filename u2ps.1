@@ -85,8 +85,6 @@ Print line numbers
 First line number, instead of default 1.
 .IP "\fB-b\fR/\fB--bookish\fR" 4
 Swap left and right headings on even pages.
-.IP "\fB-t\fR/\fB--title=\fIstring\fR" 4
-Page title.
 .IP "\fB-H\fR/\fB--no-headings\fR" 4
 Do not print default headings
 .IP "\fB--header=\fR..." 4
@@ -97,6 +95,11 @@ Page headings: centered, left and right aligned.
 .IP "\fB--footer-left=\fR..." 4
 .IP "\fB--footer-right=\fR..." 4
 Page footers.
+.IP "\fB-t\fR/\fB--title=\fIstring\fR" 4
+Page title (DSC only, not printed anywhere).
+.P
+Use \fB#\fR in \fB--header\fR or \fB--footer\fR strings to get
+current page number. Set --header="@" to get input file name.
 '''
 .SS Postscript options
 .IP "\fB-R\fR/\fB--noreduce\fR" 4
