@@ -58,7 +58,7 @@ void run_reduce(char* inputname, char* statsname)
 
 	int pid;
 	FILE* ctrl;
-       
+
 	ctrl = spawn_pipe(gs, statsname, &pid);
 
 	if((p = excludefonts.list)) while(*p)
@@ -82,7 +82,7 @@ FILE* spawn_pipe(char** cmd, char* out, int* outpid)
 	int pid;
 
 	if(pipe(pfd) < 0)
-		die("Cannot create pipe: %m\n");	
+		die("Cannot create pipe: %m\n");
 
 	if((pid = fork()) < 0)
 		die("Cannot fork: %m\n");

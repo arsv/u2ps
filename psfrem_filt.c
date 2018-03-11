@@ -60,7 +60,7 @@ void filter_embed(char* outputname, char* inputname, char* statsname)
 			inputline++;
 		else			/* If we're still printing out a line that happened to be   */
 			goto print;	/* longer than BUF, skip all checks and just print it.      */
-		
+
 		if(!statsname)
 			; /* nothing to include, or included already */
 		else if(inputline == 1 && !isdsc)

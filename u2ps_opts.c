@@ -266,7 +266,7 @@ void set_paper(char* opt)
 		if(!p->name)
 			die("Unknown paper size %s\n", opt);
 
-		pagelayout.pw = p->pw;	
+		pagelayout.pw = p->pw;
 		pagelayout.ph = p->ph;
 	}
 }
@@ -414,7 +414,7 @@ void set_derivative_parameters()
 	set_font_aspects();
 
 	if(genopts.landscape)
-		set_termfontsize(tbh, tbw);	
+		set_termfontsize(tbh, tbw);
 	else
 		set_termfontsize(tbw, tbh);
 

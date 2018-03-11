@@ -221,6 +221,6 @@ static void put_ansi_diff(void)
 		pscmd(q ? "ul" : "ue");
 	if((curr.flags & SL) != (q = next.flags & SL))
 		pscmd(q ? "sl" : "se");
-	
+
 	curr = next;
 }
