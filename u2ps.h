@@ -53,8 +53,11 @@ extern struct runopts {
 } runopts;
 
 extern struct pagelayout {
+	char* paper;
 	int pw, ph;		/* paper size, non-rotated even in landscape mode */
 	int mt, mb, ml, mr;
+	int sset;		/* paper size has been set */
+	int mset;		/* margins have been set */
 } pagelayout;
 
 struct font {
