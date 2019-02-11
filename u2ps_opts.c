@@ -258,16 +258,10 @@ void set_paper(char* opt)
 		*sep++ = '\0';
 		pagelayout.pw = atoi(opt);
 		pagelayout.ph = atoi(sep);
+		pagelayout.sset = 1;
+		pagelayout.paper = "custom";
 	} else {
-		const struct papersize* p;
-		for(p = papersize; p->name; p++)
-			if(!strcmp(p->name, opt))
-				break;
-		if(!p->name)
-			die("Unknown paper size %s\n", opt);
-
-		pagelayout.pw = p->pw;
-		pagelayout.ph = p->ph;
+		pagelayout.paper = opt;
 	}
 }
 
@@ -284,6 +278,8 @@ void set_margins(char* opt)
 	pagelayout.mr = l2 ? atoi(l2) : pagelayout.mt;
 	pagelayout.mb = l3 ? atoi(l3) : pagelayout.mt;
 	pagelayout.ml = l4 ? atoi(l4) : pagelayout.mr;
+
+	pagelayout.mset = 1;
 }
 
 void set_empty_headings(void)
@@ -396,10 +392,48 @@ static int got_headings_set(void)
 	return memcmp(&headings, zero, size);
 }
 
+static void set_page_layout(struct pagelayout* pl)
+{
+	const struct papersize* p;
+	char* paper = pl->paper;
+
+	if(pl->sset)
+		return;
+
+	if(!paper)
+		paper = getenv("PAPER");
+	if(!paper)
+		paper = "a4";
+
+	for(p = papersize; p->name; p++)
+		if(!strcmp(p->name, paper))
+			break;
+	if(!p->name)
+		die("Unknown paper size %s\n", paper);
+
+	pl->paper = paper;
+	/* page size */
+	pl->pw = p->pw;
+	pl->ph = p->ph;
+	/* margins; defaults are always symmetric */
+	int mv = p->mv;
+	int mh = p->mh;
+
+	if(!mv) mv = p->pw / 10;
+	if(!mh) mh = mv;
+
+	pl->mt = pl->mb = mv;
+	pl->ml = pl->mr = mh;
+}
+
 void set_derivative_parameters()
 {
-	int tbw = pagelayout.pw - pagelayout.ml - pagelayout.mr;
-	int tbh = pagelayout.ph - pagelayout.mt - pagelayout.mb;
+	struct pagelayout* pl = &pagelayout;
+
+	set_page_layout(pl);
+
+	int tbw = pl->pw - pl->ml - pl->mr;
+	int tbh = pl->ph - pl->mt - pl->mb;
 
 	if(halfchar && widechar)
 		die("Cannot use -1 and -2 at the same time\n");
