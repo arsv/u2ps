@@ -41,6 +41,9 @@ FILE* output;
    handle the stream bytewise, decoding utf and csi-commands at the
    same time. */
 
+#define CHUNKLEN 1024
+#define MAXTOKEN 100
+
 static int chunklen = 0;
 static int chunkptr = 0;
 static char chunk[CHUNKLEN];

@@ -13,3 +13,5 @@ test/*
 !test/*.ps
 !test/*.sh
 !test/*.chk
+config.h
+config.mk

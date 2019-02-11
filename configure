@@ -23,20 +23,19 @@ exit
 cc=${CC}
 cflags=${CFLAGS:--O}
 
-for arg; do
-	arg="$1"; shift;
+for arg in "$@"; do
 	# Separate LHS and RHS in --option=value case
 	case "$arg" in
 		*=*)
-			val=`echo "$arg" | sed -e 's/^[^=]*=//'`
-			arg=`echo "$arg" | sed -e 's/=.*//'`
+			val=${arg#*=}
+			arg=${arg%%=*}
 			;;
 		*)
-			val=""
+			val=
 			;;
 	esac
 	# strip leading --, equating "--help" and "help"
-	arg=`echo "$arg" | sed -e 's/^--//'`
+	arg=${arg#--}
 
 	case "$arg" in
 		help) help ;;
@@ -83,20 +82,20 @@ fi
 
 echo "Updating configuration"
 
-sed -i \
-	-e "/^CC =/s#=.*#= $cc#"\
-	-e "/^CFLAGS =/s#=.*#= $cflags#"\
-	-e "/^bindir =/s#=.*#= $bindir#"\
-	-e "/^basedir =/s#=.*#= $basedir#"\
-	-e "/^man1dir =/s#=.*#= $man1dir#"\
-	-e "/^gs =/s#=.*#= $gs#"\
-	config.mk
+cat > config.h <<END
+#define GS "$gs"
+#define PATH "$psfremdir"
+#define BASE "$basedir"
+END
 
-sed -i \
-	-e "/^#define GS/s#\".*#\"$gs\"#"\
-	-e "/^#define PATH/s#\".*#\"$psfremdir\"#"\
-	-e "/^#define BASE/s#\".*#\"$basedir\"#"\
-	config.h
+cat > config.mk <<END
+CC = $cc
+CFLAGS = $cflags
+
+bindir = $bindir
+basedir = $basedir
+man1dir = $man1dir
+END
 
 echo
 echo "C compiler: $cc $cflags"

@@ -13,6 +13,8 @@
    Output lines are wrapped if they become too long.
    This is independent from logical lines in the text. */
 
+#define PSLINE 100
+
 extern FILE* output;
 
 enum psmode { NOTHING = 0, COMMAND, UNISTRING, BADSTRING } state = NOTHING;
