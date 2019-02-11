@@ -17,12 +17,14 @@ ttf2pt42: ttf2pt42.o warn.o
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 install:
-	mkdir -p $(DESTDIR)$(bindir)
+	install -dm 0755 $(DESTDIR)$(bindir)
 	install -sm 0755 u2ps $(DESTDIR)$(bindir)/u2ps
 	install -sm 0755 psfrem $(DESTDIR)$(bindir)/psfrem
-	mkdir -p $(DESTDIR)$(basedir)
-	cp -r res/* $(DESTDIR)$(basedir)/
-	mkdir -p $(DESTDIR)$(man1dir)
+	install -dm 0755 $(DESTDIR)$(basedir)
+	install -dm 0755 $(DESTDIR)$(basedir)/ProcSet
+	install -m 0644 res/*.ps $(DESTDIR)$(basedir)
+	install -m 0644 res/ProcSet/* $(DESTDIR)$(basedir)/ProcSet
+	install -dm 0755 $(DESTDIR)$(man1dir)
 	install -m 0644 u2ps.1 $(DESTDIR)$(man1dir)/u2ps.1
 	install -m 0644 psfrem.1 $(DESTDIR)$(man1dir)/psfrem.1
 
