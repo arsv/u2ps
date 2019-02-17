@@ -48,7 +48,7 @@ extern struct runopts {
 	bool skipfrem;
 	bool noreduce;
 	bool allfonts;
-	bool stdout;
+	bool tostdout;
 	bool keeptemp;
 } runopts;
 

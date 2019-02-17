@@ -122,7 +122,7 @@ void open_input_output(void)
 	else if(!(input = fopen(inputname, "r")))
 		die("Cannot open %s: %m\n", inputname);
 
-	if(inputname && !outputname && !runopts.stdout)
+	if(inputname && !outputname && !runopts.tostdout)
 		outputname = resuffix(inputname, ".txt", ".ps");
 
 	if(runopts.skipfrem) {

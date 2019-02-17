@@ -82,9 +82,9 @@ LO:	if(i < argc)
 	if(i < argc)
 		die("Too many arguments\n");
 
-	if(runopts.stdout && !inputname)
+	if(runopts.tostdout && !inputname)
 		die("Either use - or specify input file name with -o\n");
-	if(runopts.stdout && outputname)
+	if(runopts.tostdout && outputname)
 		die("Using -o with output file name makes no sense\n");
 
 	set_derivative_parameters();
@@ -129,7 +129,7 @@ struct option {
 	{ 'f', "font",          FUNC,   set_font            },
 	{ '-', "aux-font",      STRING, &auxfont            },
 	{ '-', "aux-size",      FSIZE,  &auxsize            },
-	{ 'o', "stdout",        BOOL,   &runopts.stdout     },
+	{ 'o', "stdout",        BOOL,   &runopts.tostdout   },
 	{ 'w', "wrap",          BOOL,   &genopts.wrap       },
 	{ 'm', "mark",          BOOL,   &genopts.mark       },
 	{ 'i', "inverse",       BOOL,   &genopts.inverse    },
