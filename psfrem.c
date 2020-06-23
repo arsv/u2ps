@@ -40,21 +40,22 @@ int main(int argc, char** argv)
 
 void run_reduce(char* inputname, char* statsname)
 {
-	char** gs = malloc((passopt.ptr + 10)*sizeof(char*));
+	char** gs = malloc((passopt.ptr + 11)*sizeof(char*));
 	char** p = gs;
 	char** q = passopt.list;
 
 	*(p++) = GS;			/* 0 */
 	*(p++) = "-dBATCH";		/* 1 */
-	*(p++) = "-dNOPAUSE";		/* 2 */
-	*(p++) = "-dWRITESYSTEMDICT";	/* 3 */
-	*(p++) = "-dQUIET";		/* 4 */
-	*(p++) = "-sDEVICE=nullpage";	/* 5 */
-	if(q) while(*q) *(p++) = *(q++);/* 5 + passptr */
-	*(p++) = BASE "/fstat.ps";	/* 6 + passptr */
-	*(p++) = inputname;		/* 7 + passptr */
-	*(p++) = BASE "/reduce.ps";	/* 8 + passptr */
-	*(p++) = NULL;			/* 9 + passptr */
+	*(p++) = "-dNOSAFER";		/* 2 */
+	*(p++) = "-dNOPAUSE";		/* 3 */
+	*(p++) = "-dWRITESYSTEMDICT";	/* 4 */
+	*(p++) = "-dQUIET";		/* 5 */
+	*(p++) = "-sDEVICE=nullpage";	/* 6 */
+	if(q) while(*q) *(p++) = *(q++);/* 6 + passptr */
+	*(p++) = BASE "/fstat.ps";	/* 7 + passptr */
+	*(p++) = inputname;		/* 8 + passptr */
+	*(p++) = BASE "/reduce.ps";	/* 9 + passptr */
+	*(p++) = NULL;			/* 10 + passptr */
 
 	int pid;
 	FILE* ctrl;
@@ -91,7 +92,7 @@ FILE* spawn_pipe(char** cmd, char* out, int* outpid)
 		*outpid = pid;
 		return fdopen(pfd[1], "w");
 	} else {
-		int ofd = open(out, O_WRONLY | O_CREAT, 0644);
+		int ofd = open(out, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
 		if(ofd < 0)
 			die("Cannot create %s: %m\n", out);
