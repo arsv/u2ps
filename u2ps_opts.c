@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "config.h"
 #include "u2ps.h"
 #include "warn.h"
 #include "u2ps_data.h"
@@ -392,6 +393,10 @@ static int got_headings_set(void)
 	return memcmp(&headings, zero, size);
 }
 
+// to avoid horror of shell quoting, quote the paper size using C macros
+#define STRINGIZE(A) #A
+#define XSTR(S) STRINGIZE(S)
+
 static void set_page_layout(struct pagelayout* pl)
 {
 	const struct papersize* p;
@@ -403,7 +408,7 @@ static void set_page_layout(struct pagelayout* pl)
 	if(!paper)
 		paper = getenv("PAPER");
 	if(!paper)
-		paper = "a4";
+		paper = PAPER;
 
 	for(p = papersize; p->name; p++)
 		if(!strcmp(p->name, paper))

@@ -2,6 +2,14 @@
 
 unset prefix bindir datadir mandir man1dir basedir gs psfremdir cross
 
+if [ -r /etc/papersize ]; then
+  defaultpaper=$(cat /etc/papersize)
+else
+  defaultpaper=a4
+fi
+
+
+
 help() {
 cat << EOF
 Usage: $0 [OPTIONS]...
@@ -14,6 +22,7 @@ Options:
 	--mandir=/path		base directory for manual pages [\$datadir/man]
 	--man1dir=/path		directory for manual section 1 pages [\$mandir/man1]
 	--with-gs=...		gs command to use [gs]
+        --default-paper=...     default paper size [$defaultpaper]
 
 EOF
 exit
@@ -50,6 +59,7 @@ for arg in "$@"; do
 		cflags) cflags="$val" ;;
 		devel) cflags="-Wall -g"; basedir="res"; psfremdir="./" ;;
 		target) cross="$val-" ;;
+                default-paper) defaultpaper="$val" ;;
 		*)
 			echo "unexpected parameter $arg"
 			exit 1
@@ -86,6 +96,7 @@ cat > config.h <<END
 #define GS "$gs"
 #define PATH "$psfremdir"
 #define BASE "$basedir"
+#define PAPER "$defaultpaper"
 END
 
 cat > config.mk <<END
@@ -103,4 +114,5 @@ echo "u2ps executable dir: $bindir"
 echo "u2ps postscript dir: $basedir"
 echo "man section 1 path: $man1dir"
 echo "ghostscript command: $gs"
+echo "default paper size: $defaultpaper"
 echo 
