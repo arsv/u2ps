@@ -27,8 +27,8 @@ struct runopts runopts;
 
 struct pagelayout pagelayout = {
 	.pw = 595, .ph = 842,       /* A4 */
-	.mt = 55,  .ml = 57.5,      /* some reasonable margins */
-	.mb = 55,  .mr = 57.5
+	.mt = 55,  .ml = 57,      /* some reasonable margins */
+	.mb = 55,  .mr = 57
 };
 
 int auxsize; /* centipoints */
