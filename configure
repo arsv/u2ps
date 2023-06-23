@@ -65,7 +65,7 @@ basedir=${basedir:-$datadir/u2ps}
 mandir=${mandir:-$datadir/man}
 man1dir=${man1dir:-$mandir/man1}
 
-cc=${cc:-${cross}gcc}
+cc=${cc:-${cross}cc}
 gs=${gs:-gs}
 
 # This check won't change anything, but it may be useful
