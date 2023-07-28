@@ -58,6 +58,10 @@ int take_ctl(char* ptr)
 			pscmd("!cr");
 			softcol = 0;
 			break;
+		case 0x0C: /* form feed */
+			end_line(HARD);
+			softline = ((softline / genopts.rows) + 1) * genopts.rows;
+			break;
 		case 0x09: /* tab */
 			pscmd("t");
 			softcol += (genopts.tabstop - softcol % genopts.tabstop);
